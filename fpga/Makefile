@@ -126,7 +126,7 @@ sim_pfe:
 	$(VERILATOR) $(VERILATOR_FLAGS) \
 		--top-module tb_pfe \
 		-Mdir $(BUILD_DIR)/pfe \
-		$(RTL_PFE) $(RTL_ACC) $(RTL_SER) $(TB_PFE)
+		$(RTL_PFE) $(RTL_SER) $(TB_PFE)
 	@echo "== Running tb_pfe =="
 	./$(BUILD_DIR)/pfe/Vtb_pfe
 

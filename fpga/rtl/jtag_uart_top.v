@@ -6,9 +6,10 @@ module jtag_uart_top (
 );
 
     // =====================================================
-    // Change this parameter to set the word width
+    // PFE parametri: DSIZE je 8 (ulaz), a izlaz je uvek 16
     // =====================================================
-    localparam NUM_BYTES = 4;   // 4 bytes = 32 bits
+    localparam IN_DSIZE  = 8;   
+    localparam OUT_DSIZE = 16;  
     // =====================================================
 
     wire rst_n = RSTN;
@@ -22,31 +23,28 @@ module jtag_uart_top (
     wire [31:0] av_writedata;
     wire        av_waitrequest;
 
-    // Controller RX stream (8-bit bytes from PC) and TX stream (8-bit bytes to PC)
+    // Stream veze
     wire [7:0]  ctrl_fifo_data;
     wire        ctrl_fifo_valid;
     wire        ctrl_fifo_ready;
+    
+    wire [7:0]  fifo_pfe_data;
+    wire        fifo_pfe_valid;
+    wire        fifo_pfe_ready;
+
+    wire [15:0] pfe_fifo_data;
+    wire        pfe_fifo_valid;
+    wire        pfe_fifo_ready;
+
+    wire [7:0]  fifo_ser_data;
+    wire        fifo_ser_valid;
+    wire        fifo_ser_ready;
+
     wire [7:0]  fifo_ctrl_data;
     wire        fifo_ctrl_valid;
     wire        fifo_ctrl_ready;
 
-    // FIFO to SER/DESER and back
-    wire [7:0] fifo_deser_data;
-    wire       fifo_deser_valid;
-    wire       fifo_deser_ready;
-    wire [7:0] ser_fifo_data;
-    wire       ser_fifo_valid;
-    wire       ser_fifo_ready;
-
-    // SER/DESER to PFE
-    wire [NUM_BYTES*8-1:0] deser_pfe_data;
-    wire                   deser_pfe_valid;
-    wire                   deser_pfe_ready;
-    wire [NUM_BYTES*8-1:0] pfe_ser_data;
-    wire                   pfe_ser_valid;
-    wire                   pfe_ser_ready;
-
-    // Platform Designer system
+    // Platform Designer system (JTAG UART IP)
     jtag_uart_sys u_sys (
         .clk_clk                              (CLOCK_50),
         .reset_reset_n                        (rst_n),
@@ -59,7 +57,7 @@ module jtag_uart_top (
         .jtag_uart_avalon_waitrequest         (av_waitrequest)
     );
 
-    // JTAG UART controller
+    // JTAG UART controller (Pretvara Avalon u Stream)
     jtag_uart_controller u_ctrl (
         .clk              (CLOCK_50),
         .rst_n            (rst_n),
@@ -78,71 +76,60 @@ module jtag_uart_top (
         .tx_ready         (fifo_ctrl_ready)
     );
 
-    // FIFO between ctrl and deserializer
+    // FIFO ulazni bafer (8-bit)
     fifo #(
       .DSIZE (8),
       .ASIZE (8)
-    ) u_fifo_deser (
+    ) u_fifo_rx (
       .clk_i        (CLOCK_50),     
       .rst_ni       (rst_n),
       .in_data_i    (ctrl_fifo_data),    
       .in_valid_i   (ctrl_fifo_valid),
       .in_ready_o   (ctrl_fifo_ready),
-      .out_data_o   (fifo_deser_data),
-      .out_valid_o  (fifo_deser_valid),
-      .out_ready_i  (fifo_deser_ready)
+      .out_data_o   (fifo_pfe_data),
+      .out_valid_o  (fifo_pfe_valid),
+      .out_ready_i  (fifo_pfe_ready)
     );
 
-    byte_deserializer #(
-        .NUM_BYTES (NUM_BYTES)
-    ) u_deserializer (
-        .clk      (CLOCK_50),
-        .rst_n    (rst_n),
-        .in_data  (fifo_deser_data),
-        .in_valid (fifo_deser_valid),
-        .in_ready (fifo_deser_ready),
-        .out_data (deser_pfe_data),
-        .out_valid(deser_pfe_valid),
-        .out_ready(deser_pfe_ready)
-    );
-
-
-    // PFE module
+    // PFE modul (Tvoj "bitwise" procesor)
+    // Ulaz: 8 bita, Izlaz: 16 bita
     pfe #(
-        .DSIZE (4*8)
+        .DSIZE (IN_DSIZE)
     ) u_pfe (
         .clk_i        (CLOCK_50),
         .rst_ni       (rst_n),
-        .in_data_i    (deser_pfe_data),
-        .in_valid_i   (deser_pfe_valid),
-        .in_ready_o   (deser_pfe_ready),
-        .out_data_o   (pfe_ser_data),
-        .out_valid_o  (pfe_ser_valid),
-        .out_ready_i  (pfe_ser_ready)
+        .in_data_i    (fifo_pfe_data),
+        .in_valid_i   (fifo_pfe_valid),
+        .in_ready_o   (fifo_pfe_ready),
+        .out_data_o   (pfe_fifo_data),
+        .out_valid_o  (pfe_fifo_valid),
+        .out_ready_i  (pfe_fifo_ready)
     );
 
+    // Serializer (Pretvara 16-bitni rezultat iz PFE u dva 8-bitna bajta za JTAG)
     byte_serializer #(
-        .NUM_BYTES (NUM_BYTES)
+        .NUM_BYTES (2) // Jer je izlaz iz PFE 16 bita (2 bajta)
     ) u_serializer (
         .clk      (CLOCK_50),
         .rst_n    (rst_n),
-        .in_data  (pfe_ser_data),
-        .in_valid (pfe_ser_valid),
-        .in_ready (pfe_ser_ready),
-        .out_data (ser_fifo_data),
-        .out_valid(ser_fifo_valid),
-        .out_ready(ser_fifo_ready)
+        .in_data  (pfe_fifo_data),
+        .in_valid (pfe_fifo_valid),
+        .in_ready (pfe_fifo_ready),
+        .out_data (fifo_ser_data),
+        .out_valid(fifo_ser_valid),
+        .out_ready(fifo_ser_ready)
     );
 
+    // FIFO izlazni bafer (8-bit)
     fifo #(
       .DSIZE (8), 
       .ASIZE (8)
-    ) u_fifo_ser (
+    ) u_fifo_tx (
       .clk_i        (CLOCK_50),     
       .rst_ni       (rst_n),    
-      .in_data_i    (ser_fifo_data),
-      .in_valid_i   (ser_fifo_valid),
-      .in_ready_o   (ser_fifo_ready),
+      .in_data_i    (fifo_ser_data),
+      .in_valid_i   (fifo_ser_valid),
+      .in_ready_o   (fifo_ser_ready),
       .out_data_o   (fifo_ctrl_data),
       .out_valid_o  (fifo_ctrl_valid),
       .out_ready_i  (fifo_ctrl_ready)
