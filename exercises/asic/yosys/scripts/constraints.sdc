@@ -12,10 +12,10 @@
 set_load 15.0 [all_outputs]
 set_driving_cell -lib_cell sg13g2_IOPadOut16mA -pin pad [get_ports [list \
   rst_ni \
-  in_valid_i \
-  out_ready_i \
-  in_data_0_i in_data_1_i in_data_2_i in_data_3_i \
-  in_data_4_i in_data_5_i in_data_6_i in_data_7_i \
+  VGA_H VGA_V \
+  VGA_R0 VGA_R1 VGA_R2 VGA_R3 VGA_R4 VGA_R5 VGA_R6 VGA_R7 \
+  VGA_G0 VGA_G1 VGA_G2 VGA_G3 VGA_G4 VGA_G5 VGA_G6 VGA_G7 \
+  VGA_B0 VGA_B1 VGA_B2 VGA_B3 VGA_B4 VGA_B5 VGA_B6 VGA_B7 
 ]]
 
 ##################
@@ -24,7 +24,7 @@ set_driving_cell -lib_cell sg13g2_IOPadOut16mA -pin pad [get_ports [list \
 puts "Clocks..."
 
 # 50 MHz system clock
-set TCK_SYS 20.0
+set TCK_SYS 40.0
 create_clock -name clk_sys -period $TCK_SYS [get_ports clk_i]
 
 # Reasonable clock quality assumptions

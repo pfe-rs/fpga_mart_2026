@@ -38,11 +38,6 @@ yosys tee -q -o "reports/pfe_parsed.rpt" stat
 # generisati netlistu
 yosys write_verilog -norename -noexpr "out/pfe_parsed.v"
 
-# Ne morate sacuvati sve hijerarhije, ali sacuvajte makar akumulator
-yosys setattr -set keep_hierarchy 1 "t:pfe_soc$*"
-yosys setattr -set keep_hierarchy 1 "t:accumulator$*"
-yosys blackbox "t:RM_IHPSG13_2P_256x8_c2_bm_bist$*"
-
 ##############################################################################
 # TODO: Zadatak 4: Elaboracija
 ##############################################################################
@@ -85,7 +80,7 @@ yosys write_verilog -norename -noexpr "out/pfe_abstract.v"
 # TODO: Zadatak 6: Definisanje taktnog signala
 ##############################################################################
 
-set period_ps 20000
+set period_ps 40000
 
 ##############################################################################
 # TODO: Zadatak 8: Genericko mapiranje

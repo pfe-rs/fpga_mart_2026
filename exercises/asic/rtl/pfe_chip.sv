@@ -1,33 +1,37 @@
 module pfe_chip (
+
   input  wire clk_i,
   input  wire rst_ni,
 
-    // Input stream (producer -> FIFO)
-  input  wire in_valid_i,
-  output wire in_ready_o,
-  input  wire in_data_0_i,
-  input  wire in_data_1_i,
-  input  wire in_data_2_i,
-  input  wire in_data_3_i,
-  input  wire in_data_4_i,
-  input  wire in_data_5_i,
-  input  wire in_data_6_i,
-  input  wire in_data_7_i,
+  output wire VGA_H,
+  output wire VGA_V,
 
-  // Output stream (FIFO -> consumer)
-  output wire out_valid_o,
-  input  wire out_ready_i,
-  output wire out_data_0_o,
-  output wire out_data_1_o,
-  output wire out_data_2_o,
-  output wire out_data_3_o,
-  output wire out_data_4_o,
-  output wire out_data_5_o,
-  output wire out_data_6_o,
-  output wire out_data_7_o,
+  output wire VGA_R0,
+  output wire VGA_R1,
+  output wire VGA_R2,
+  output wire VGA_R3,
+  output wire VGA_R4,
+  output wire VGA_R5,
+  output wire VGA_R6,
+  output wire VGA_R7,
 
-  output wire unused0_o,
-  output wire unused1_o,
+  output wire VGA_G0,
+  output wire VGA_G1,
+  output wire VGA_G2,
+  output wire VGA_G3,
+  output wire VGA_G4,
+  output wire VGA_G5,
+  output wire VGA_G6,
+  output wire VGA_G7,
+
+  output wire VGA_B0,
+  output wire VGA_B1,
+  output wire VGA_B2,
+  output wire VGA_B3,
+  output wire VGA_B4,
+  output wire VGA_B5,
+  output wire VGA_B6,
+  output wire VGA_B7,
 
   inout wire VDD,
   inout wire VSS,
@@ -36,56 +40,47 @@ module pfe_chip (
 ); 
     logic soc_clk_i;
     logic soc_rst_ni;
-    logic soc_ref_clk_i;
-    logic soc_testmode_i;
 
-    logic soc_jtag_tck_i;
-    logic soc_jtag_trst_ni;
-    logic soc_jtag_tms_i;
-    logic soc_jtag_tdi_i;
-    logic soc_jtag_tdo_o;
+    logic soc_h_sync;           //Ovih 5 je dodato
+    logic soc_v_sync;
+    logic [7:0] soc_R;
+    logic [7:0] soc_G;
+    logic [7:0] soc_B;
 
     logic soc_status_o;
 
-    localparam int unsigned DataCount = 16;
+    sg13g2_IOPadIn             pad_clk_i    (.pad(clk_i ),   .p2c(soc_clk_i));
+    sg13g2_IOPadIn             pad_rst_ni   (.pad(rst_ni),   .p2c(soc_rst_ni));
 
-    logic                 soc_in_valid_i;
-    logic                 soc_in_ready_o;
-    logic [DataCount-1:0] soc_in_data_i; 
-    logic                 soc_out_valid_o;
-    logic                 soc_out_ready_i;            
-    logic [DataCount-1:0] soc_out_data_o;
+    sg13g2_IOPadOut16mA        pad_VGA_H    (.pad(VGA_H),    .c2p(soc_h_sync));
+    sg13g2_IOPadOut16mA        pad_VGA_V    (.pad(VGA_V),    .c2p(soc_v_sync));
 
-    sg13g2_IOPadIn        pad_clk_i        (.pad(clk_i),        .p2c(soc_clk_i));
-    sg13g2_IOPadIn        pad_rst_ni       (.pad(rst_ni),       .p2c(soc_rst_ni));
+    sg13g2_IOPadOut16mA        pad_VGA_R0   (.pad(VGA_R0),   .c2p(soc_R[0]));
+    sg13g2_IOPadOut16mA        pad_VGA_R1   (.pad(VGA_R1),   .c2p(soc_R[1]));
+    sg13g2_IOPadOut16mA        pad_VGA_R2   (.pad(VGA_R2),   .c2p(soc_R[2]));
+    sg13g2_IOPadOut16mA        pad_VGA_R3   (.pad(VGA_R3),   .c2p(soc_R[3]));
+    sg13g2_IOPadOut16mA        pad_VGA_R4   (.pad(VGA_R4),   .c2p(soc_R[4]));
+    sg13g2_IOPadOut16mA        pad_VGA_R5   (.pad(VGA_R5),   .c2p(soc_R[5]));
+    sg13g2_IOPadOut16mA        pad_VGA_R6   (.pad(VGA_R6),   .c2p(soc_R[6]));
+    sg13g2_IOPadOut16mA        pad_VGA_R7   (.pad(VGA_R7),   .c2p(soc_R[7]));
 
-    // in_data
-    sg13g2_IOPadIn        pad_in_valid_i    (.pad(in_valid_i),    .p2c(soc_in_valid_i));
-    sg13g2_IOPadOut16mA   pad_in_ready_o    (.pad(in_ready_o),    .c2p(soc_in_ready_o));
-    sg13g2_IOPadIn        pad_in_data_0_i   (.pad(in_data_0_i),   .p2c(soc_in_data_i[0]));
-    sg13g2_IOPadIn        pad_in_data_1_i   (.pad(in_data_1_i),   .p2c(soc_in_data_i[1]));
-    sg13g2_IOPadIn        pad_in_data_2_i   (.pad(in_data_2_i),   .p2c(soc_in_data_i[2]));
-    sg13g2_IOPadIn        pad_in_data_3_i   (.pad(in_data_3_i),   .p2c(soc_in_data_i[3]));
-    sg13g2_IOPadIn        pad_in_data_4_i   (.pad(in_data_4_i),   .p2c(soc_in_data_i[4]));
-    sg13g2_IOPadIn        pad_in_data_5_i   (.pad(in_data_5_i),   .p2c(soc_in_data_i[5]));
-    sg13g2_IOPadIn        pad_in_data_6_i   (.pad(in_data_6_i),   .p2c(soc_in_data_i[6]));
-    sg13g2_IOPadIn        pad_in_data_7_i   (.pad(in_data_7_i),   .p2c(soc_in_data_i[7]));
+    sg13g2_IOPadOut16mA        pad_VGA_G0   (.pad(VGA_G0),   .c2p(soc_G[0]));
+    sg13g2_IOPadOut16mA        pad_VGA_G1   (.pad(VGA_G1),   .c2p(soc_G[1]));
+    sg13g2_IOPadOut16mA        pad_VGA_G2   (.pad(VGA_G2),   .c2p(soc_G[2]));
+    sg13g2_IOPadOut16mA        pad_VGA_G3   (.pad(VGA_G3),   .c2p(soc_G[3]));
+    sg13g2_IOPadOut16mA        pad_VGA_G4   (.pad(VGA_G4),   .c2p(soc_G[4]));
+    sg13g2_IOPadOut16mA        pad_VGA_G5   (.pad(VGA_G5),   .c2p(soc_G[5]));
+    sg13g2_IOPadOut16mA        pad_VGA_G6   (.pad(VGA_G6),   .c2p(soc_G[6]));
+    sg13g2_IOPadOut16mA        pad_VGA_G7   (.pad(VGA_G7),   .c2p(soc_G[7]));
 
-    // out_data
-    sg13g2_IOPadOut16mA   pad_out_valid_o   (.pad(out_valid_o),   .c2p(soc_out_valid_o));
-    sg13g2_IOPadIn        pad_out_ready_i   (.pad(out_ready_i),   .p2c(soc_out_ready_i));
-    sg13g2_IOPadOut16mA   pad_out_data_0_o  (.pad(out_data_0_o),  .c2p(soc_out_data_o[0]));
-    sg13g2_IOPadOut16mA   pad_out_data_1_o  (.pad(out_data_1_o),  .c2p(soc_out_data_o[1]));
-    sg13g2_IOPadOut16mA   pad_out_data_2_o  (.pad(out_data_2_o),  .c2p(soc_out_data_o[2]));
-    sg13g2_IOPadOut16mA   pad_out_data_3_o  (.pad(out_data_3_o),  .c2p(soc_out_data_o[3]));
-    sg13g2_IOPadOut16mA   pad_out_data_4_o  (.pad(out_data_4_o),  .c2p(soc_out_data_o[4]));
-    sg13g2_IOPadOut16mA   pad_out_data_5_o  (.pad(out_data_5_o),  .c2p(soc_out_data_o[5]));
-    sg13g2_IOPadOut16mA   pad_out_data_6_o  (.pad(out_data_6_o),  .c2p(soc_out_data_o[6]));
-    sg13g2_IOPadOut16mA   pad_out_data_7_o  (.pad(out_data_7_o),  .c2p(soc_out_data_o[7]));
-
-    sg13g2_IOPadOut16mA pad_unused0_o      (.pad(unused0_o),    .c2p(soc_status_o));
-    sg13g2_IOPadOut16mA pad_unused1_o      (.pad(unused1_o),    .c2p(soc_status_o));
-
+    sg13g2_IOPadOut16mA        pad_VGA_B0   (.pad(VGA_B0),   .c2p(soc_B[0]));
+    sg13g2_IOPadOut16mA        pad_VGA_B1   (.pad(VGA_B1),   .c2p(soc_B[1]));
+    sg13g2_IOPadOut16mA        pad_VGA_B2   (.pad(VGA_B2),   .c2p(soc_B[2]));
+    sg13g2_IOPadOut16mA        pad_VGA_B3   (.pad(VGA_B3),   .c2p(soc_B[3]));
+    sg13g2_IOPadOut16mA        pad_VGA_B4   (.pad(VGA_B4),   .c2p(soc_B[4]));
+    sg13g2_IOPadOut16mA        pad_VGA_B5   (.pad(VGA_B5),   .c2p(soc_B[5]));
+    sg13g2_IOPadOut16mA        pad_VGA_B6   (.pad(VGA_B6),   .c2p(soc_B[6]));
+    sg13g2_IOPadOut16mA        pad_VGA_B7   (.pad(VGA_B7),   .c2p(soc_B[7]));
 
     (* dont_touch = "true" *)sg13g2_IOPadVdd pad_vdd0();
     (* dont_touch = "true" *)sg13g2_IOPadVdd pad_vdd1();
@@ -107,20 +102,17 @@ module pfe_chip (
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio2();
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio3();
 
-  pfe_soc #(
-    .DSIZE    (   8 ),
-    .ASIZE    (   8 ),
-    .USE_SRAM ( 1'b1 )
-  )
-  i_fifo_soc (
-    .clk_i          ( soc_clk_i       ),
-    .rst_ni         ( soc_rst_ni      ),
-    .in_valid_i     ( soc_in_valid_i  ),
-    .in_ready_o     ( soc_in_ready_o  ),
-    .in_data_i      ( soc_in_data_i   ),
-    .out_valid_o    ( soc_out_valid_o ),
-    .out_ready_i    ( soc_out_ready_i ),
-    .out_data_o     ( soc_out_data_o  )
+  pfe_soc #()
+  
+  i_pfe_soc (
+    .clk_i          ( soc_clk_i ),
+    .rst_ni         ( soc_rst_ni),
+
+    .h_sync         ( soc_h_sync),
+    .v_sync         ( soc_v_sync),
+    .R              ( soc_R     ),
+    .G              ( soc_G     ),
+    .B              ( soc_B     )
   );
 
   assign soc_status_o = 1'b1;
