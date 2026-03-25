@@ -2,8 +2,6 @@ module game (
     input logic clk,
     input logic rst,
 
-    input logic [3:0]seed,
-
     input logic paddle1_up,
     input logic paddle1_down,
     input logic paddle2_up,
@@ -13,8 +11,9 @@ module game (
     output logic [2:0] paddle2_y,
     output logic [2:0] ball_x,
     output logic [2:0] ball_y,
-    output logic [3:0] score1,
-    output logic [3:0] score2
+    //output logic [3:0] score1,
+    //output logic [3:0] score2,
+    output logic [31:0] speed_up
 );
 
     logic velx;
@@ -41,16 +40,22 @@ module game (
 
 
         //kretanje paddle-a
-        if (paddle1_up && paddle1_y > 0)
-                next_paddle1Y = paddle1_y - 1;
-        else if (paddle1_down && paddle1_y < 5)
-                next_paddle1Y = paddle1_y + 1;
+        if (paddle1_up && paddle1_y > 0) begin
+            next_paddle1Y = paddle1_y - 1;
+        end
 
-        if (paddle2_up && paddle2_y > 0)
-                next_paddle2Y= paddle2_y - 1;
-        else if (paddle2_down && paddle2_y < 5)
-                next_paddle2Y = paddle2_y + 1;
+        else if (paddle1_down && paddle1_y < 5) begin
+            next_paddle1Y = paddle1_y + 1;
+        end
 
+
+        if (paddle2_up && paddle2_y > 0) begin
+            next_paddle2Y = paddle2_y - 1;
+        end
+
+        else if (paddle2_down && paddle2_y < 5) begin
+            next_paddle2Y = paddle2_y + 1;
+        end
 
         //kretanje loptice
         if(velx)
@@ -103,21 +108,18 @@ module game (
         if (!rst) begin
             paddle1_y <= 3;
             paddle2_y <= 3;
-            random <= seed;
+            random <= 1;
 
-            if(seed[0])begin
-                ball_x <= 4;
-                velx <= 1;
-            end else begin
-                ball_x <= 3;
-                velx <= 0;
-            end
+            ball_x <= 4;
+            velx <= 1;
 
             ball_y <= 4;
             vely <= 0;
 
-            score1 <= 0;
-            score2 <= 0;
+            //score1 <= 0;
+            //score2 <= 0;
+
+            speed_up <= 0;
         end
         else begin
 
@@ -130,10 +132,10 @@ module game (
 
             //zapocinjanje nove runde
             if(next_ball_x == 0 || next_ball_x == 7) begin
-                if(next_ball_x == 0)
+                /*if(next_ball_x == 0)
                 score1 <= score1 + 1;
                 else
-                score2 <= score2 + 1;
+                score2 <= score2 + 1;*/
 
                 if(random[0])begin
                     ball_x <= 4;
@@ -149,7 +151,11 @@ module game (
 
                 paddle1_y <= 3;
                 paddle2_y <= 3;
-            end
+                speed_up <= 0;
+            end else
+                if(speed_up < 18_000_000)
+                    speed_up <= speed_up + 45_000;
+
         end
     end
 endmodule

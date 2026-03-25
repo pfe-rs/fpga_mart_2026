@@ -10,8 +10,7 @@ set pdk_sram_lib  ${pdk_dir}/ihp-sg13g2/libs.ref/sg13g2_sram/lib
 set pdk_io_lib    ${pdk_dir}/ihp-sg13g2/libs.ref/sg13g2_io/lib
 
 set tech_cells [list "$pdk_cells_lib/sg13g2_stdcell_typ_1p20V_25C.lib"]
-set tech_macros [glob -directory $pdk_sram_lib *_typ_1p20V_25C.lib]
-lappend tech_macros "$pdk_io_lib/sg13g2_io_typ_1p2V_3p3V_25C.lib"
+set tech_macros [list "$pdk_io_lib/sg13g2_io_typ_1p2V_3p3V_25C.lib"]
 
 # svi lib fajlovi
 set lib_list [concat [split $tech_cells] [split $tech_macros] ]
@@ -41,11 +40,6 @@ yosys tee -q -o "reports/pfe_parsed.rpt" stat
 
 # generisati netlistu
 yosys write_verilog -norename -noexpr "out/pfe_parsed.v" 
-
-yosys setattr -set keep_hierarchy 1 "t:pfe_soc$*"
-yosys setattr -set keep_hierarchy 1 "t:accumulator$*"
-
-yosys blackbox "t:RM_IHPSG13_2P_256x8_c2_bm_bist$*"
 
 yosys attrmap -rename dont_touch keep
 yosys attrmap -tocase keep -imap keep="true" keep=1

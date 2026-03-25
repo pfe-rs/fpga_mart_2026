@@ -3,6 +3,7 @@ module tick #(
 )(
     input  logic clk,
     input  logic rst,
+    input  logic[31:0] speedUp,
     output logic clkDiv
 );
 
@@ -13,7 +14,7 @@ module tick #(
             cnt  <= 0;
             clkDiv <= 0;
         end else begin
-            if (cnt == DIV-1) begin
+            if (cnt >= DIV-speedUp) begin
                 cnt  <= 0;
                 clkDiv <= 1;
             end else begin

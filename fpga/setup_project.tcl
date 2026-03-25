@@ -26,6 +26,10 @@ set_global_assignment -name VERILOG_FILE ./rtl/jtag_uart_top.v
 set_global_assignment -name VERILOG_FILE ./rtl/jtag_uart_controller.v
 set_global_assignment -name VERILOG_FILE ./rtl/fifo.v
 set_global_assignment -name SYSTEMVERILOG_FILE ./rtl/pfe.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ./rtl/render.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ./rtl/game.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ./rtl/sevenseg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ./rtl/tick.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ./rtl/byte_deserializer.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ./rtl/byte_serializer.sv
 set_global_assignment -name QIP_FILE jtag_uart_sys/synthesis/jtag_uart_sys.qip
@@ -36,8 +40,66 @@ set_location_assignment PIN_AF14 -to CLOCK_50
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLOCK_50
 
 # --- RESET_N ---
-set_location_assignment PIN_AA14 -to RSTN
+set_location_assignment PIN_AE12 -to RSTN
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to RSTN
+
+# -------------------------
+# pushbuttons
+# KEYs on DE1-SoC:
+# KEY[0]=AA14, KEY[1]=AA15, KEY[2]=W15, KEY[3]=Y16
+# -------------------------
+set_location_assignment PIN_Y16  -to paddleLU
+set_location_assignment PIN_W15  -to paddleLD
+set_location_assignment PIN_AA15 -to paddleRU
+set_location_assignment PIN_AA14 -to paddleRD
+
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to paddleLU
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to paddleLD
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to paddleRU
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to paddleRD
+
+# -------------------------
+# col[7:0] -> GPIO_0[7:0]
+# -------------------------
+set_location_assignment PIN_AC18 -to col[0]   
+set_location_assignment PIN_Y17  -to col[1]   
+set_location_assignment PIN_AD17 -to col[2]  
+set_location_assignment PIN_Y18  -to col[3]   
+set_location_assignment PIN_AK16 -to col[4]  
+set_location_assignment PIN_AK18 -to col[5]   
+set_location_assignment PIN_AK19 -to col[6]   
+set_location_assignment PIN_AJ19 -to col[7]   
+
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to col[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to col[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to col[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to col[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to col[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to col[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to col[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to col[7]
+
+# -------------------------
+# row[7:0] -> GPIO_0[15:8]
+# -------------------------
+set_location_assignment PIN_AJ17 -to row[0]  
+set_location_assignment PIN_AJ16 -to row[1]   
+set_location_assignment PIN_AH18 -to row[2]   
+set_location_assignment PIN_AH17 -to row[3]   
+set_location_assignment PIN_AG16 -to row[4]  
+set_location_assignment PIN_AE16 -to row[5]   
+set_location_assignment PIN_AF16 -to row[6]   
+set_location_assignment PIN_AG17 -to row[7]  
+
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to row[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to row[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to row[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to row[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to row[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to row[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to row[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to row[7]
+
 
 export_assignments
 project_close

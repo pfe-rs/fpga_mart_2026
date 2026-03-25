@@ -3,60 +3,79 @@ module pfe #(
 )(
     input  logic             clk_i,
     input  logic             rst_ni,
-    // Input
-    input  logic [DSIZE-1:0] in_data_i,
-    input  logic             in_valid_i,
-    output logic             in_ready_o,
-    // Output
-    output logic [DSIZE-1:0] out_data_o,
-    output logic             out_valid_o,
-    input  logic             out_ready_i
+
+    input logic paddleLU, //key3
+    input logic paddleLD, //key2
+    input logic paddleRU, //key1
+    input logic paddleRD, //key0
+    output logic [7:0] col, //gpio pins
+    output logic [7:0] row
+    /*
+    output logic [6:0] HEX0, //hex0
+    output logic [6:0] HEX1, //hex1
+    output logic [6:0] HEX4, //hex4
+    output logic [6:0] HEX5 //hex5
+    */
+
 );
+    //logic [3:0] scoreL;
+    //logic [3:0] scoreR;
 
-    localparam int NO2ACC = 8;
-    localparam int IN_BYTES  = DSIZE / 8;
-    localparam int SAFE_M    = (NO2ACC < 1) ? 1 : NO2ACC;
-    localparam int ACC_BITS  = DSIZE + $clog2(SAFE_M);
-    localparam int ACC_BYTES = (ACC_BITS + 7) / 8;
-    localparam int ACC_WIDTH = ACC_BYTES * 8;
+    logic[2:0] leftY;
+    logic[2:0] rightY;
+    logic[2:0] ballX;
+    logic[2:0] ballY;
 
-    // Optional guard: serializer output is 8-bit, so this module
-    // is intended for DSIZE == 8.
-    generate
-        if (DSIZE != 8) begin : g_bad_dsize
-            DSIZE_MUST_BE_8_FOR_THIS_PFE invalid_inst();
-        end
-    endgenerate
-
-    logic signed [ACC_WIDTH-1:0] acc_data;
-    logic                        acc_valid;
-    logic                        acc_ready;
-
-    accumulator #(
-        .IN_BYTES (IN_BYTES),
-        .NO2ACC   (NO2ACC)
-    ) u_accumulator (
-        .clk_i      (clk_i),
-        .rst_ni     (rst_ni),
-        .in_data_i  (in_data_i),
-        .in_valid_i (in_valid_i),
-        .in_ready_o (in_ready_o),
-        .out_data_o (acc_data),
-        .out_valid_o(acc_valid),
-        .out_ready_i(acc_ready)
+    logic[31:0] speedUp;
+    logic clk_game;
+    logic clk_led;
+    tick #(.DIV(25_000_000)) t1(
+        .clk(clk_i),
+        .rst(rst_ni),
+        .clkDiv(clk_game),
+        .speedUp(speedUp)
+    );
+    tick #(.DIV(50_000)) t2(
+        .clk(clk_i),
+        .rst(rst_ni),
+        .clkDiv(clk_led),
+        .speedUp(0)
     );
 
-    byte_serializer #(
-        .NUM_BYTES (ACC_BYTES)
-    ) u_serializer (
-        .clk      (clk_i),
-        .rst_n    (rst_ni),
-        .in_data  (acc_data),
-        .in_valid (acc_valid),
-        .in_ready (acc_ready),
-        .out_data (out_data_o),
-        .out_valid(out_valid_o),
-        .out_ready(out_ready_i)
+    render rend(
+        .clk(clk_led),
+        .rst(rst_ni),
+        .leftY(leftY),
+        .rightY(rightY),
+        .ballX(ballX),
+        .ballY(ballY),
+        .col(col),
+        .row(row)
     );
 
+    game g(
+        .clk(clk_game),
+        .rst(rst_ni),
+        .paddle1_up(!paddleLU),
+        .paddle1_down(!paddleLD),
+        .paddle2_up(!paddleRU),
+        .paddle2_down(!paddleRD),
+        .paddle1_y(leftY),
+        .paddle2_y(rightY),
+        .ball_x(ballX),
+        .ball_y(ballY),
+        //.score1(scoreL),
+        //.score2(scoreR),
+        .speed_up(speedUp)
+    );
+/*
+    sevenseg seg(
+        .scoreL(scoreL),
+        .scoreR(scoreR),
+        .HEX0(HEX0),
+        .HEX1(HEX1),
+        .HEX2(HEX4),
+        .HEX3(HEX5)
+    );
+*/
 endmodule

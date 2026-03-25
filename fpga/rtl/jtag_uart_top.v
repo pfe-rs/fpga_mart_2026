@@ -2,7 +2,18 @@
 
 module jtag_uart_top (
     input wire CLOCK_50,
-    input wire RSTN
+    input wire RSTN,
+    input wire paddleLU, //key3
+    input wire paddleLD, //key2
+    input wire paddleRU, //key1
+    input wire paddleRD, //key0
+    output wire [7:0] col, //gpio pins
+    output wire [7:0] row
+    /*
+    output wire [6:0] HEX0, //hex0
+    output wire [6:0] HEX1, //hex1
+    output wire [6:0] HEX4, //hex4
+    output wire [6:0] HEX5 //hex5*/
 );
 
     // =====================================================
@@ -113,12 +124,17 @@ module jtag_uart_top (
     ) u_pfe (
         .clk_i        (CLOCK_50),
         .rst_ni       (rst_n),
-        .in_data_i    (deser_pfe_data),
-        .in_valid_i   (deser_pfe_valid),
-        .in_ready_o   (deser_pfe_ready),
-        .out_data_o   (pfe_ser_data),
-        .out_valid_o  (pfe_ser_valid),
-        .out_ready_i  (pfe_ser_ready)
+        .paddleLU(paddleLU),
+        .paddleLD(paddleLD),
+        .paddleRU(paddleRU),
+        .paddleRD(paddleRD),
+        .col(col),
+        .row(row)
+        /*
+        .HEX0(HEX0),
+        .HEX1(HEX1),
+        .HEX4(HEX4),
+        .HEX5(HEX5)*/
     );
 
     byte_serializer #(
