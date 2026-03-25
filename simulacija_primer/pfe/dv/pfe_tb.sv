@@ -1,166 +1,83 @@
-`timescale 1ns / 1ps
-
+`timescale 1ns/1ps
 module pfe_tb;
 
-    // ──────────────────────────────────────────────
-    // Parameters
-    // ──────────────────────────────────────────────
-    parameter int DSIZE      = 8;
-    parameter int CLK_PERIOD = 10; // ns
+    parameter N = 3;
+    parameter M = 2;
 
-    // ──────────────────────────────────────────────
-    // Test stimulus - edit these arrays to change
-    // what gets sent and what is expected
-    // ──────────────────────────────────────────────
-    logic [DSIZE-1:0] input_data []    = '{8'hA0, 8'hB1, 8'hC2, 8'hD3, 8'hE4, 8'h01, 8'h02, 8'h03};
-    logic [DSIZE-1:0] expected_data [] = '{8'hA0, 8'hB1, 8'hC2, 8'hD3, 8'hE4, 8'h01, 8'h02, 8'h03};
+    logic clk_i, rst_ni;
+    logic [15:0] in_data_i;
+    logic in_valid_i;
+    
+    logic in_ready_o;
+    logic [15:0] out_data_o;
+    logic out_valid_o;
+    logic out_ready_i;
+     
+    logic [15:0] c[0:N-1][0:N-1];
+    
+    logic [15:0] A[0:N*M-1];
 
-    // ──────────────────────────────────────────────
-    // DUT signals
-    // ──────────────────────────────────────────────
-    logic             clk;
-    logic             rst_n;
-    logic [DSIZE-1:0] in_data;
-    logic             in_valid;
-    logic             in_ready;
-    logic [DSIZE-1:0] out_data;
-    logic             out_valid;
-    logic             out_ready;
+    int row, col;
 
-    // ──────────────────────────────────────────────
-    // DUT instantiation
-    // ──────────────────────────────────────────────
-    pfe #(
-        .DSIZE(DSIZE)
-    ) dut (
-        .clk_i       (clk),
-        .rst_ni      (rst_n),
-        .in_data_i   (in_data),
-        .in_valid_i  (in_valid),
-        .in_ready_o  (in_ready),
-        .out_data_o  (out_data),
-        .out_valid_o (out_valid),
-        .out_ready_i (out_ready)
+    
+    pfe #(.N(N), .M(M), .DSIZE(2*8)) dut (
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
+        .in_data_i(in_data_i),
+        .in_valid_i(in_valid_i),
+        .in_ready_o(in_ready_o),
+        .out_data_o(out_data_o),
+        .out_valid_o(out_valid_o),
+        .out_ready_i(out_ready_i)
+        //.c(c)
     );
 
-    // ──────────────────────────────────────────────
-    // Clock generation
-    // ──────────────────────────────────────────────
-    initial clk = 0;
-    always #(CLK_PERIOD / 2) clk = ~clk;
 
-    // ──────────────────────────────────────────────
-    // Reset
-    // ──────────────────────────────────────────────
-    task automatic do_reset();
-        rst_n     <= 1'b0;
-        in_data   <= '0;
-        in_valid  <= 1'b0;
-        out_ready <= 1'b0;
-        repeat (5) @(posedge clk);
-        rst_n <= 1'b1;
-        @(posedge clk);
-    endtask
+    initial clk_i = 0;
+    always #5 clk_i = ~clk_i; 
+    
 
-    // ──────────────────────────────────────────────
-    // Sender process
-    // ──────────────────────────────────────────────
-    int send_count = 0;
-
-    task automatic sender();
-        $display("[SENDER  ] Starting - %0d words to send", input_data.size());
-
-        for (int i = 0; i < input_data.size(); i++) begin
-            // Drive data + valid (will appear at next posedge)
-            in_data  <= input_data[i];
-            in_valid <= 1'b1;
-            // Now wait for handshake: sample at each posedge
-            forever begin
-                @(posedge clk);
-                if (in_valid && in_ready) begin
-                    $display("[SENDER  ] [%0t] Sent word [%0d] = 0x%0h", $time, i, input_data[i]);
-                    send_count++;
-                    break;
-                end
-            end
-        end
-        // De-assert after last transfer
-        in_valid <= 1'b0;
-        in_data  <= '0;
-        $display("[SENDER  ] Done - %0d words sent", send_count);
-    endtask
-
-    // ──────────────────────────────────────────────
-    // Receiver process
-    //
-    // Same handshake logic on the output side:
-    // assert ready, then check valid on each posedge.
-    // ──────────────────────────────────────────────
-    int recv_count  = 0;
-    int error_count = 0;
-
-    task automatic receiver();
-        $display("[RECEIVER] Starting - expecting %0d words", expected_data.size());
-
-        out_ready <= 1'b1;
-
-        for (int i = 0; i < expected_data.size(); i++) begin
-            forever begin
-                @(posedge clk);
-                if (out_valid && out_ready) begin
-                    recv_count++;
-                    if (out_data !== expected_data[i]) begin
-                        $error("[RECEIVER] [%0t] MISMATCH word [%0d]: got 0x%0h, expected 0x%0h",
-                               $time, i, out_data, expected_data[i]);
-                        error_count++;
-                    end else begin
-                        $display("[RECEIVER] [%0t] OK word [%0d] = 0x%0h", $time, i, out_data);
-                    end
-                    break;
-                end
-            end
-        end
-        out_ready <= 1'b0;
-        $display("[RECEIVER] Done - %0d words received, %0d errors", recv_count, error_count);
-    endtask
-
-    // ──────────────────────────────────────────────
-    // Main test sequence
-    // ──────────────────────────────────────────────
     initial begin
-        $display("========================================");
-        $display(" PFE Testbench Start");
-        $display("========================================");
-
-        // Dump vcd
-        $dumpfile("pfe.vcd");
-        $dumpvars(0, pfe_tb);
-
-        do_reset();
-
-        // Fork means that this should work in parallel
-        fork
-            sender();
-            receiver();
-        join
-
-        repeat (5) @(posedge clk);
-        $display("========================================");
-        if (error_count == 0)
-            $display(" TEST PASSED (%0d words)", recv_count);
-        else
-            $display(" TEST FAILED (%0d errors out of %0d words)", error_count, recv_count);
-        $display("========================================");
-        $finish;
+        $dumpfile("pfe_tb.vcd");    
+        $dumpvars(0, pfe_tb);        
     end
 
-    // ──────────────────────────────────────────────
-    // Timeout watchdog
-    // ──────────────────────────────────────────────
     initial begin
-        #(CLK_PERIOD * 1000);
-        $error("TIMEOUT - simulation did not finish in time");
+        rst_ni = 0; in_valid_i = 0; out_ready_i = 0; in_data_i = 0;
+        #12;
+        rst_ni = 1;
+
+        A[0]=257;
+        A[1]=257;
+        A[2]=270;
+        A[3]=270;
+        A[4]=270;
+        A[5]=257;
+
+        for (int i=0; i<N*M; i++) begin
+            @(posedge clk_i);
+            in_data_i = A[i];
+            in_valid_i = 1;
+            wait(in_ready_o);
+        end
+
+        
+
+       
+        @(posedge clk_i);
+        in_valid_i = 0;
+
+  
+        out_ready_i = 1;
+
+        for (row=0; row<N; row=row+1) begin
+            for (col=0; col<N; col=col+1) begin
+                wait(out_valid_o);
+                @(posedge clk_i);
+                $display("C[%0d][%0d] = %0d", row, col, out_data_o);
+            end
+        end
+
         $finish;
     end
-
 endmodule
