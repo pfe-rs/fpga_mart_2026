@@ -8,7 +8,7 @@ module jtag_uart_top (
     // =====================================================
     // Change this parameter to set the word width
     // =====================================================
-    localparam NUM_BYTES = 4;   // 4 bytes = 32 bits
+    localparam NUM_BYTES = 1;   // 4 bytes = 32 bits
     // =====================================================
 
     wire rst_n = RSTN;
@@ -109,7 +109,8 @@ module jtag_uart_top (
 
     // PFE module
     pfe #(
-        .DSIZE (4*8)
+        .DSIZE (8),
+        .DIMENSION(32)
     ) u_pfe (
         .clk_i        (CLOCK_50),
         .rst_ni       (rst_n),

@@ -56,11 +56,11 @@ module pfe_chip (
     logic                 soc_out_ready_i;            
     logic [DataCount-1:0] soc_out_data_o;
 
-    sg13g2_IOPadIn        pad_clk_i        (.pad(clk_i),        .p2c(soc_clk_i));
+    sg13g2_IOPadIn        pad_clk_i        (.pad(clk_i),        .p2c(soc_clk_i)); // od spolja ka unutra
     sg13g2_IOPadIn        pad_rst_ni       (.pad(rst_ni),       .p2c(soc_rst_ni));
 
     // in_data
-    sg13g2_IOPadIn        pad_in_valid_i    (.pad(in_valid_i),    .p2c(soc_in_valid_i));
+    sg13g2_IOPadIn        pad_in_valid_i    (.pad(in_valid_i),    .p2c(soc_in_valid_i)); // svaki signal mora da ima svoj pad
     sg13g2_IOPadOut16mA   pad_in_ready_o    (.pad(in_ready_o),    .c2p(soc_in_ready_o));
     sg13g2_IOPadIn        pad_in_data_0_i   (.pad(in_data_0_i),   .p2c(soc_in_data_i[0]));
     sg13g2_IOPadIn        pad_in_data_1_i   (.pad(in_data_1_i),   .p2c(soc_in_data_i[1]));

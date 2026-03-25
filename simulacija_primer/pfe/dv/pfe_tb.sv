@@ -6,17 +6,61 @@ module pfe_tb;
     // Parameters
     // ──────────────────────────────────────────────
     parameter int DSIZE      = 8;
+    parameter int DIMENSION  = 32; // Promenjeno na 32
     parameter int CLK_PERIOD = 10; // ns
 
-    // ──────────────────────────────────────────────
-    // Test stimulus - edit these arrays to change
-    // what gets sent and what is expected
-    // ──────────────────────────────────────────────
-    logic [DSIZE-1:0] input_data []    = '{8'hA0, 8'hB1, 8'hC2, 8'hD3, 8'hE4, 8'h01, 8'h02, 8'h03};
-    logic [DSIZE-1:0] expected_data [] = '{8'hA0, 8'hB1, 8'hC2, 8'hD3, 8'hE4, 8'h01, 8'h02, 8'h03};
+    // Dinamički nizovi za podatke
+    logic [DSIZE-1:0] input_data [];
+    logic [DSIZE-1:0] expected_data [];
+
+    // Kernel definisan u RTL-u: {0, 1, 0, 1, 2, 1, 0, 1, 0}
+    int KERNEL[9] = '{0, 1, 0, 1, 2, 1, 0, 1, 0};
 
     // ──────────────────────────────────────────────
-    // DUT signals
+    // Automatsko generisanje matrica (32x32)
+    // ──────────────────────────────────────────────
+    initial begin
+        // Rezerviši prostor: 32*32 = 1024 ulaza, 30*30 = 900 izlaza
+        input_data    = new[DIMENSION * DIMENSION];
+        expected_data = new[(DIMENSION-2) * (DIMENSION-2)];
+
+        // 1. Generisanje ulazne slike (Ivice 0x01, unutrašnjost 0x05)
+        for (int r = 0; r < DIMENSION; r++) begin
+            for (int c = 0; c < DIMENSION; c++) begin
+                if (r == 0 || r == DIMENSION-1 || c == 0 || c == DIMENSION-1)
+                    input_data[r*DIMENSION + c] = 8'h01;
+                else
+                    input_data[r*DIMENSION + c] = 8'h10;
+            end
+        end
+
+        // 2. Izračunavanje očekivanog rezultata (Golden Model)
+        begin
+            int k = 0;
+            for (int r = 1; r < DIMENSION-1; r++) begin
+                for (int c = 1; c < DIMENSION-1; c++) begin
+                    longint acc = 0; // Koristimo longint da ne prelije pre saturacije
+                    
+                    acc = (input_data[(r-1)*DIMENSION + (c-1)] * KERNEL[0]) +
+                          (input_data[(r-1)*DIMENSION + (c  )] * KERNEL[1]) +
+                          (input_data[(r-1)*DIMENSION + (c+1)] * KERNEL[2]) +
+                          (input_data[(r  )*DIMENSION + (c-1)] * KERNEL[3]) +
+                          (input_data[(r  )*DIMENSION + (c  )] * KERNEL[4]) +
+                          (input_data[(r  )*DIMENSION + (c+1)] * KERNEL[5]) +
+                          (input_data[(r+1)*DIMENSION + (c-1)] * KERNEL[6]) +
+                          (input_data[(r+1)*DIMENSION + (c  )] * KERNEL[7]) +
+                          (input_data[(r+1)*DIMENSION + (c+1)] * KERNEL[8]);
+                    
+                    expected_data[k] = acc[10:3];
+                    
+                    k++;
+                end
+            end
+        end
+    end
+
+    // ──────────────────────────────────────────────
+    // DUT signals & Instantiation
     // ──────────────────────────────────────────────
     logic             clk;
     logic             rst_n;
@@ -27,11 +71,9 @@ module pfe_tb;
     logic             out_valid;
     logic             out_ready;
 
-    // ──────────────────────────────────────────────
-    // DUT instantiation
-    // ──────────────────────────────────────────────
     pfe #(
-        .DSIZE(DSIZE)
+        .DSIZE(DSIZE),
+        .DIMENSION(DIMENSION)
     ) dut (
         .clk_i       (clk),
         .rst_ni      (rst_n),
@@ -44,20 +86,17 @@ module pfe_tb;
     );
 
     // ──────────────────────────────────────────────
-    // Clock generation
+    // Clock & Reset
     // ──────────────────────────────────────────────
     initial clk = 0;
     always #(CLK_PERIOD / 2) clk = ~clk;
 
-    // ──────────────────────────────────────────────
-    // Reset
-    // ──────────────────────────────────────────────
     task automatic do_reset();
         rst_n     <= 1'b0;
         in_data   <= '0;
         in_valid  <= 1'b0;
         out_ready <= 1'b0;
-        repeat (5) @(posedge clk);
+        repeat (10) @(posedge clk);
         rst_n <= 1'b1;
         @(posedge clk);
     endtask
@@ -65,101 +104,75 @@ module pfe_tb;
     // ──────────────────────────────────────────────
     // Sender process
     // ──────────────────────────────────────────────
-    int send_count = 0;
-
     task automatic sender();
-        $display("[SENDER  ] Starting - %0d words to send", input_data.size());
-
+        $display("[SENDER] Starting - sending %0d pixels", input_data.size());
         for (int i = 0; i < input_data.size(); i++) begin
-            // Drive data + valid (will appear at next posedge)
             in_data  <= input_data[i];
             in_valid <= 1'b1;
-            // Now wait for handshake: sample at each posedge
-            forever begin
+            do begin
                 @(posedge clk);
-                if (in_valid && in_ready) begin
-                    $display("[SENDER  ] [%0t] Sent word [%0d] = 0x%0h", $time, i, input_data[i]);
-                    send_count++;
-                    break;
-                end
-            end
+            end while (!in_ready);
         end
-        // De-assert after last transfer
         in_valid <= 1'b0;
-        in_data  <= '0;
-        $display("[SENDER  ] Done - %0d words sent", send_count);
+        $display("[SENDER] All pixels sent.");
     endtask
 
     // ──────────────────────────────────────────────
     // Receiver process
-    //
-    // Same handshake logic on the output side:
-    // assert ready, then check valid on each posedge.
     // ──────────────────────────────────────────────
     int recv_count  = 0;
     int error_count = 0;
 
     task automatic receiver();
-        $display("[RECEIVER] Starting - expecting %0d words", expected_data.size());
+    $display("[RECEIVER] Waiting for %0d output pixels", expected_data.size());
+    out_ready <= 1'b1;
+    for (int i = 0; i < expected_data.size(); i++) begin
+        do begin
+            @(posedge clk);
+        end while (!out_valid);
 
-        out_ready <= 1'b1;
+        // Ispis svakog izlaza i očekivane vrednosti
+        $display("[RECEIVER] Pixel %0d: Got 0x%h, Expected 0x%h", i, out_data, expected_data[i]);
 
-        for (int i = 0; i < expected_data.size(); i++) begin
-            forever begin
-                @(posedge clk);
-                if (out_valid && out_ready) begin
-                    recv_count++;
-                    if (out_data !== expected_data[i]) begin
-                        $error("[RECEIVER] [%0t] MISMATCH word [%0d]: got 0x%0h, expected 0x%0h",
-                               $time, i, out_data, expected_data[i]);
-                        error_count++;
-                    end else begin
-                        $display("[RECEIVER] [%0t] OK word [%0d] = 0x%0h", $time, i, out_data);
-                    end
-                    break;
-                end
-            end
+        if (out_data !== expected_data[i]) begin
+            $error("[ERROR] Pixel %0d mismatch!", i);
+            error_count++;
         end
-        out_ready <= 1'b0;
-        $display("[RECEIVER] Done - %0d words received, %0d errors", recv_count, error_count);
-    endtask
+        recv_count++;
+    end
+    out_ready <= 1'b0;
+endtask
 
     // ──────────────────────────────────────────────
-    // Main test sequence
+    // Main Simulation
     // ──────────────────────────────────────────────
     initial begin
         $display("========================================");
-        $display(" PFE Testbench Start");
+        $display(" PFE 32x32 Testbench Start");
         $display("========================================");
-
-        // Dump vcd
-        $dumpfile("pfe.vcd");
-        $dumpvars(0, pfe_tb);
 
         do_reset();
 
-        // Fork means that this should work in parallel
         fork
             sender();
             receiver();
         join
 
-        repeat (5) @(posedge clk);
+        repeat (20) @(posedge clk);
         $display("========================================");
-        if (error_count == 0)
-            $display(" TEST PASSED (%0d words)", recv_count);
+        $display(" Received: %0d / %0d", recv_count, expected_data.size());
+        if (error_count == 0 && recv_count == expected_data.size())
+            $display(" STATUS: TEST PASSED");
         else
-            $display(" TEST FAILED (%0d errors out of %0d words)", error_count, recv_count);
+            $display(" STATUS: TEST FAILED (%0d errors)", error_count);
         $display("========================================");
         $finish;
     end
 
-    // ──────────────────────────────────────────────
-    // Timeout watchdog
-    // ──────────────────────────────────────────────
+    // Timeout (povećan za 32x32)
     initial begin
-        #(CLK_PERIOD * 1000);
-        $error("TIMEOUT - simulation did not finish in time");
+        #(CLK_PERIOD * 50000);
+        $error("TIMEOUT - Sim took too long!");
         $finish;
     end
 

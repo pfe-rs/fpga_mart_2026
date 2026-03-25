@@ -32,7 +32,6 @@ module byte_deserializer #(
     localparam int unsigned WIDTH = NUM_BYTES * 8;
 
     logic [WIDTH-1:0] shift_reg;
-    assign out_data = shift_reg;
 
     generate
         if (NUM_BYTES == 1) begin : gen_single
@@ -43,6 +42,9 @@ module byte_deserializer #(
 
         end else begin : gen_multi
           localparam int unsigned CNT_WIDTH = $clog2(NUM_BYTES);
+
+              // Connect shift register to output word in multi-byte mode
+              assign out_data = shift_reg;
 
           logic [CNT_WIDTH-1:0] cnt;
           logic                 full;  // all bytes collected

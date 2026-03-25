@@ -1,6 +1,6 @@
 module pfe_soc #(
   parameter int unsigned DSIZE    = 8,
-  parameter int unsigned ASIZE    = 8,
+  parameter int unsigned ASIZE    = 10,
   parameter bit          USE_SRAM = 1'b1
 ) (
   input  logic             clk_i,
@@ -41,7 +41,8 @@ module pfe_soc #(
 
   // Processing module
   pfe #(
-    .DSIZE       (DSIZE)
+    .DSIZE       (DSIZE),
+    .DIMENSION (32)
   ) u_pfe (
     .clk_i       (clk_i),
     .rst_ni      (rst_ni),
@@ -55,8 +56,8 @@ module pfe_soc #(
 
   fifo #(
     .DSIZE       ( DSIZE ),
-    .ASIZE       ( ASIZE ),
-    .USE_SRAM    ( USE_SRAM )
+    .ASIZE       ( 10 ), // FIX
+    .USE_SRAM    ( 1'b0 ) // FIX
   )
   i_fifo_out (
     .clk_i       ( clk_i            ),

@@ -292,55 +292,122 @@ def png_write_grayscale(filepath, width, height, pixel_bytes):
 # ---------------------------------------------------------------------------
 
 def send_all(ja, data, chunk_delay=0.001):
-    """Send all bytes over JTAG UART, retrying as needed."""
+    """Send all bytes with FULL DEBUG."""
+    
     total = len(data)
     offset = 0
+    last_progress_time = time.time()
+
+    print("\n[DEBUG] Starting TX...")
+    print(f"[DEBUG] Total bytes to send: {total}")
+
     while offset < total:
-        n = ja.write(data[offset:])
+        now = time.time()
+
+        # сколько FPGA может принять (косвенно)
+        avail = ja.bytes_available()
+        print(f"\n[DEBUG] bytes_available (RX side) = {avail}")
+
+        try:
+            n = ja.write(data[offset:])
+        except Exception as e:
+            print(f"\n[ERROR] WRITE FAILED at offset {offset}: {e}")
+            break
+
         if n == 0:
+            # это ОЧЕНЬ важно — значит JTAG забился
+            if now - last_progress_time > 1.0:
+                print(f"\n[DEBUG] STALL: no progress for 1s at offset {offset}")
+                last_progress_time = now
+
             time.sleep(chunk_delay)
             continue
-        offset += n
-        # Flush periodically for reliability over JTAG
-        if offset % 256 == 0 or offset == total:
-            ja.flush()
 
-        # Progress
+        offset += n
+        last_progress_time = now
+
+        # flush чаще
+        if offset % 64 == 0 or offset == total:
+            ja.flush()
+            print(f"\n[DEBUG] FLUSH at {offset}")
+
         pct = 100.0 * offset / total
-        sys.stdout.write("\r  Sent: {} / {} bytes ({:.0f}%)".format(offset, total, pct))
+        sys.stdout.write(
+            "\r  Sent: {} / {} bytes ({:.0f}%)".format(offset, total, pct)
+        )
         sys.stdout.flush()
 
     ja.flush()
-    sys.stdout.write("\n")
+    print("\n[DEBUG] TX DONE")
+
+    if offset != total:
+        print(f"[ERROR] TX INCOMPLETE: {offset}/{total}")
+
     return offset
 
 
 def receive_all(ja, expected_bytes, timeout=30.0, poll_interval=0.01):
-    """Receive exactly expected_bytes from JTAG UART with timeout."""
+    """Receive exactly expected_bytes from JTAG UART with detailed debug."""
+    
     rx_buf = bytearray()
     t_start = time.time()
+    last_rx_time = time.time()
+    first_byte_received = False
+
+    print("\n[DEBUG] Starting RX loop...")
+    print(f"[DEBUG] Expecting {expected_bytes} bytes")
 
     while len(rx_buf) < expected_bytes:
-        elapsed = time.time() - t_start
-        if elapsed > timeout:
+        now = time.time()
+
+        # общий таймаут
+        if now - t_start > timeout:
+            print("\n[ERROR] TIMEOUT reached")
             break
 
+        # сколько доступно в FIFO JTAG
+        avail = ja.bytes_available()
+        if avail > 0:
+            print(f"\n[DEBUG] bytes_available = {avail}")
+
+        # читаем
         chunk = ja.read(expected_bytes - len(rx_buf))
+
         if chunk:
+            if not first_byte_received:
+                print(f"\n[DEBUG] First byte received after {now - t_start:.2f}s")
+                first_byte_received = True
+
             rx_buf.extend(chunk)
-            t_start = time.time()  # reset timeout on each received chunk
+            last_rx_time = now
 
             pct = 100.0 * len(rx_buf) / expected_bytes
-            sys.stdout.write("\r  Received: {} / {} bytes ({:.0f}%)".format(
-                len(rx_buf), expected_bytes, pct
-            ))
+            sys.stdout.write(
+                "\r  Received: {} / {} bytes ({:.0f}%)".format(
+                    len(rx_buf), expected_bytes, pct
+                )
+            )
+            sys.stdout.write(str(chunk[0]))
             sys.stdout.flush()
+
         else:
+            # если долго нет данных → это важно
+            if now - last_rx_time > 1.0:
+                print(f"\n[DEBUG] No data for 1s (received {len(rx_buf)}/{expected_bytes})")
+                last_rx_time = now
+
             time.sleep(poll_interval)
 
-    sys.stdout.write("\n")
-    return bytes(rx_buf)
+    print()  # newline после прогресса
 
+    # финальный отчёт
+    print(f"[DEBUG] RX done: {len(rx_buf)} / {expected_bytes} bytes")
+
+    if len(rx_buf) != expected_bytes:
+        print("[ERROR] SIZE MISMATCH!")
+        print(f"Expected: {expected_bytes}, got: {len(rx_buf)}")
+
+    return bytes(rx_buf)
 
 # ---------------------------------------------------------------------------
 # Main
@@ -363,11 +430,11 @@ def main():
         help="JTAG UART instance number. -1 for auto."
     )
     parser.add_argument(
-        "--input", default="images/pfe.png",
+        "--input", default="images/pfe1.png",
         help="Input PNG image to send (default: images/pfe.png)"
     )
     parser.add_argument(
-        "--output", default="images/pfe_received.png",
+        "--output", default="images/pfe1_received.png",
         help="Output PNG image received back (default: images/pfe_received.png)"
     )
     parser.add_argument(

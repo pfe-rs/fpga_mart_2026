@@ -44,6 +44,7 @@ yosys write_verilog -norename -noexpr "out/pfe_parsed.v"
 
 yosys setattr -set keep_hierarchy 1 "t:pfe_soc$*"
 yosys setattr -set keep_hierarchy 1 "t:accumulator$*"
+yosys setattr -set keep_hierarchy 1 "t:fifo$*" ;# FIX
 
 yosys blackbox "t:RM_IHPSG13_2P_256x8_c2_bm_bist$*"
 
