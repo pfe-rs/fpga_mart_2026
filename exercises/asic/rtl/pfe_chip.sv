@@ -13,22 +13,7 @@ module pfe_chip (
   input  wire in_data_5_i,
   input  wire in_data_6_i,
   input  wire in_data_7_i,
-  input  wire in_data_8_i,
-  input  wire in_data_9_i,
-  input  wire in_data_10_i,
-  input  wire in_data_11_i,
-  input  wire in_data_12_i,
-  input  wire in_data_13_i,
-  input  wire in_data_14_i,
-  input  wire in_data_15_i,
-  input  wire in_data_16_i,
-  input  wire in_data_17_i,
-  input  wire in_data_18_i,
-  input  wire in_data_19_i,
-  input  wire in_data_20_i,
-  input  wire in_data_21_i,
-  input  wire in_data_22_i,
-  input  wire in_data_23_i,
+
   input  wire btn,
 
   // Output stream (FIFO -> consumer)
@@ -67,7 +52,7 @@ module pfe_chip (
 
     logic soc_status_o;
 
-    localparam int unsigned DataCount = 24;
+    localparam int unsigned DataCount = 8;
 
     logic                 soc_in_valid_i;
     logic                 soc_in_ready_o;
@@ -91,22 +76,7 @@ module pfe_chip (
     sg13g2_IOPadIn        pad_in_data_5_i   (.pad(in_data_5_i),   .p2c(soc_in_data_i[5]));
     sg13g2_IOPadIn        pad_in_data_6_i   (.pad(in_data_6_i),   .p2c(soc_in_data_i[6]));
     sg13g2_IOPadIn        pad_in_data_7_i   (.pad(in_data_7_i),   .p2c(soc_in_data_i[7]));
-    sg13g2_IOPadIn        pad_in_data_8_i   (.pad(in_data_8_i),   .p2c(soc_in_data_i[8]));
-    sg13g2_IOPadIn        pad_in_data_9_i   (.pad(in_data_9_i),   .p2c(soc_in_data_i[9]));
-    sg13g2_IOPadIn        pad_in_data_10_i   (.pad(in_data_10_i),   .p2c(soc_in_data_i[10]));
-    sg13g2_IOPadIn        pad_in_data_11_i   (.pad(in_data_11_i),   .p2c(soc_in_data_i[11]));
-    sg13g2_IOPadIn        pad_in_data_12_i   (.pad(in_data_12_i),   .p2c(soc_in_data_i[12]));
-    sg13g2_IOPadIn        pad_in_data_13_i   (.pad(in_data_13_i),   .p2c(soc_in_data_i[13]));
-    sg13g2_IOPadIn        pad_in_data_14_i   (.pad(in_data_14_i),   .p2c(soc_in_data_i[14]));
-    sg13g2_IOPadIn        pad_in_data_15_i   (.pad(in_data_15_i),   .p2c(soc_in_data_i[15]));
-    sg13g2_IOPadIn        pad_in_data_16_i   (.pad(in_data_16_i),   .p2c(soc_in_data_i[16]));
-    sg13g2_IOPadIn        pad_in_data_17_i   (.pad(in_data_17_i),   .p2c(soc_in_data_i[17]));
-    sg13g2_IOPadIn        pad_in_data_18_i   (.pad(in_data_18_i),   .p2c(soc_in_data_i[18]));
-    sg13g2_IOPadIn        pad_in_data_19_i   (.pad(in_data_19_i),   .p2c(soc_in_data_i[19]));
-    sg13g2_IOPadIn        pad_in_data_20_i   (.pad(in_data_20_i),   .p2c(soc_in_data_i[20]));
-    sg13g2_IOPadIn        pad_in_data_21_i   (.pad(in_data_21_i),   .p2c(soc_in_data_i[21]));
-    sg13g2_IOPadIn        pad_in_data_22_i   (.pad(in_data_22_i),   .p2c(soc_in_data_i[22]));
-    sg13g2_IOPadIn        pad_in_data_23_i   (.pad(in_data_23_i),   .p2c(soc_in_data_i[23]));
+    
     sg13g2_IOPadIn        pad_btn            (.pad(btn         ),   .p2c(soc_btn          ));
     
 
@@ -148,7 +118,7 @@ module pfe_chip (
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio3();
 
   pfe_soc #(
-    .DSIZE    ( 24),
+    
     .ASIZE    (   8 ),
     .USE_SRAM ( 1'b0 )
   
