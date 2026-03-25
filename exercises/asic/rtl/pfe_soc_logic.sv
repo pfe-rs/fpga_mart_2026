@@ -47,7 +47,6 @@ module pfe_soc #(
   // bit 5: NAND of bits 5 and 4
   assign out_data_o[5] = !(in_data_i[5] && in_data_i[4]);
 
-  // bit 6: NOR of bits 7 and 6
   assign out_data_o[6] = !(in_data_i[7] || in_data_i[6]);
 
   // bit 7: tie to 1
