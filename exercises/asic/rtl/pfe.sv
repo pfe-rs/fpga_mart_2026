@@ -1,62 +1,135 @@
 module pfe #(
-    parameter int DSIZE  = 8
+    parameter int DSIZE  = 256
 )(
     input  logic             clk_i,
     input  logic             rst_ni,
-    // Input
+
     input  logic [DSIZE-1:0] in_data_i,
     input  logic             in_valid_i,
     output logic             in_ready_o,
-    // Output
+    
     output logic [DSIZE-1:0] out_data_o,
     output logic             out_valid_o,
     input  logic             out_ready_i
 );
+    localparam int head = 15;
 
-    localparam int NO2ACC = 8;
-    localparam int IN_BYTES  = DSIZE / 8;
-    localparam int SAFE_M    = (NO2ACC < 1) ? 1 : NO2ACC;
-    localparam int ACC_BITS  = DSIZE + $clog2(SAFE_M);
-    localparam int ACC_BYTES = (ACC_BITS + 7) / 8;
-    localparam int ACC_WIDTH = ACC_BYTES * 8;
+    logic [4:0] pc;
+    logic [7:0] tape_mem [0:31];
+    logic [7:0] instruction_memory_32x8 [0:31];
+    logic [7:0] state_register;
+    logic signed [4:0] operand;
 
-    // Optional guard: serializer output is 8-bit, so this module
-    // is intended for DSIZE == 8.
-    generate
-        if (DSIZE != 8) begin : g_bad_dsize
-            DSIZE_MUST_BE_8_FOR_THIS_PFE invalid_inst();
+    typedef enum logic [2:0] {
+        OP_left_shift  = 3'b000,
+        OP_right_shift = 3'b001,
+        OP_minus       = 3'b010,
+        OP_plus        = 3'b011,
+        OP_if_jump     = 3'b100,
+        OP_jump        = 3'b101
+    } Opcode;
+
+    Opcode current_instruction;
+
+    typedef enum logic [2:0] {
+        LOAD    = 3'b000,
+        FETCH   = 3'b001,
+        DECODE  = 3'b010,
+        EXECUTE = 3'b011,
+        UPDATE  = 3'b100,
+        HALT    = 3'b101
+    } fsm_t;
+
+    fsm_t FSM_stage;
+
+    always_comb begin
+        for (int i = 0; i < 32; i++) begin
+            out_data_o[i*8 +: 8] = tape_mem[i];
         end
-    endgenerate
+    end
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            FSM_stage      <= LOAD;
+            pc             <= 5'b0;
+            state_register <= 8'b0;
+            for (int i = 0; i < 32; i++) begin
+                tape_mem[i]                <= i + 1; // Inicijalizacija trake
+                instruction_memory_32x8[i] <= 8'b0;
+            end
 
-    logic signed [ACC_WIDTH-1:0] acc_data;
-    logic                        acc_valid;
-    logic                        acc_ready;
+        end else begin
+            case (FSM_stage)
 
-    accumulator #(
-        .IN_BYTES (IN_BYTES),
-        .NO2ACC   (NO2ACC)
-    ) u_accumulator (
-        .clk_i      (clk_i),
-        .rst_ni     (rst_ni),
-        .in_data_i  (in_data_i),
-        .in_valid_i (in_valid_i),
-        .in_ready_o (in_ready_o),
-        .out_data_o (acc_data),
-        .out_valid_o(acc_valid),
-        .out_ready_i(acc_ready)
-    );
+                LOAD: begin
+                    if (in_valid_i) begin
+                        for (int i = 0; i < 32; i++)
+                            instruction_memory_32x8[i] <= in_data_i[i*8 +: 8];
+                        FSM_stage <= FETCH;
+                    end
+                end
 
-    byte_serializer #(
-        .NUM_BYTES (ACC_BYTES)
-    ) u_serializer (
-        .clk      (clk_i),
-        .rst_n    (rst_ni),
-        .in_data  (acc_data),
-        .in_valid (acc_valid),
-        .in_ready (acc_ready),
-        .out_data (out_data_o),
-        .out_valid(out_valid_o),
-        .out_ready(out_ready_i)
-    );
+                FETCH: begin
+                    state_register <= tape_mem[head];
+                    FSM_stage      <= DECODE;
+                end
+
+                DECODE: begin
+                    current_instruction <= Opcode'(instruction_memory_32x8[pc][2:0]);
+                    operand             <= instruction_memory_32x8[pc][7:3];
+                    FSM_stage           <= EXECUTE;
+                end
+
+                EXECUTE: begin
+                    case (current_instruction)
+                        OP_left_shift: begin
+                            for (int i = 31; i > 0; i--) tape_mem[i] <= tape_mem[i-1];
+                            tape_mem[0] <= 8'b0;
+                            FSM_stage   <= UPDATE;
+                        end
+                        OP_right_shift: begin
+                            for (int i = 0; i < 31; i++) tape_mem[i] <= tape_mem[i+1];
+                            tape_mem[31] <= 8'b0;
+                            FSM_stage    <= UPDATE;
+                        end
+                        OP_minus: begin
+                            state_register <= state_register - 1;
+                            FSM_stage      <= UPDATE;
+                        end
+                        OP_plus: begin
+                            state_register <= state_register + 1;
+                            FSM_stage      <= UPDATE;
+                        end
+                        OP_if_jump: FSM_stage <= fsm_t'((state_register != 0) ? UPDATE : HALT);
+                        OP_jump:    FSM_stage <= fsm_t'((operand == 5'b0)     ? HALT   : UPDATE);
+                        default:    FSM_stage <= UPDATE;
+                    endcase
+                end
+
+                UPDATE: begin
+                    if (current_instruction != OP_jump && current_instruction != OP_if_jump)
+                        pc <= pc + 1;
+                    else
+                        pc <= pc + $unsigned(operand);
+
+                    if (current_instruction == OP_plus || current_instruction == OP_minus)
+                        tape_mem[head] <= state_register;
+
+                    FSM_stage <= FETCH;         
+                end
+
+                HALT: begin
+                    if (out_ready_i) begin
+                        FSM_stage <= LOAD;
+                        pc        <= 5'b0;
+                    end
+                end
+
+                default: FSM_stage <= LOAD;
+            endcase
+        end
+    end
+    
+    assign in_ready_o  = (FSM_stage == LOAD);
+    assign out_valid_o = (FSM_stage == HALT);
 
 endmodule

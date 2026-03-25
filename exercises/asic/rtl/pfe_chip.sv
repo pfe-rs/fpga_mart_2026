@@ -1,63 +1,23 @@
 module pfe_chip (
   input  wire clk_i,
   input  wire rst_ni,
-
-    // Input stream (producer -> FIFO)
-  input  wire in_valid_i,
-  output wire in_ready_o,
-  input  wire in_data_0_i,
-  input  wire in_data_1_i,
-  input  wire in_data_2_i,
-  input  wire in_data_3_i,
-  input  wire in_data_4_i,
-  input  wire in_data_5_i,
-  input  wire in_data_6_i,
-  input  wire in_data_7_i,
-
-  // Output stream (FIFO -> consumer)
-  output wire out_valid_o,
-  input  wire out_ready_i,
-  output wire out_data_0_o,
-  output wire out_data_1_o,
-  output wire out_data_2_o,
-  output wire out_data_3_o,
-  output wire out_data_4_o,
-  output wire out_data_5_o,
-  output wire out_data_6_o,
-  output wire out_data_7_o,
-
-  output wire unused0_o,
-  output wire unused1_o,
+  input  wire rx_i,       // Tvoj jedan jedini ulaz
+  output wire tx_o,       // Tvoj jedan izlaz
 
   inout wire VDD,
   inout wire VSS,
   inout wire VDDIO,
   inout wire VSSIO
-); 
-    logic soc_clk_i;
-    logic soc_rst_ni;
-    logic soc_ref_clk_i;
-    logic soc_testmode_i;
+);
 
-    logic soc_jtag_tck_i;
-    logic soc_jtag_trst_ni;
-    logic soc_jtag_tms_i;
-    logic soc_jtag_tdi_i;
-    logic soc_jtag_tdo_o;
+    logic soc_rx_i;
+    logic soc_tx_o;
 
-    logic soc_status_o;
+    // Padovi za tvoje nove signale
+    sg13g2_IOPadIn        pad_rx_i (.pad(rx_i), .p2c(soc_rx_i));
+    sg13g2_IOPadOut16mA   pad_tx_o (.pad(tx_o), .c2p(soc_tx_o));
 
-    localparam int unsigned DataCount = 16;
-
-    logic                 soc_in_valid_i;
-    logic                 soc_in_ready_o;
-    logic [DataCount-1:0] soc_in_data_i; 
-    logic                 soc_out_valid_o;
-    logic                 soc_out_ready_i;            
-    logic [DataCount-1:0] soc_out_data_o;
-
-    sg13g2_IOPadIn        pad_clk_i        (.pad(clk_i),        .p2c(soc_clk_i));
-    sg13g2_IOPadIn        pad_rst_ni       (.pad(rst_ni),       .p2c(soc_rst_ni));
+    // Ostatak VDD/VSS padova ostaje isti...
 
     // in_data
     sg13g2_IOPadIn        pad_in_valid_i    (.pad(in_valid_i),    .p2c(soc_in_valid_i));
