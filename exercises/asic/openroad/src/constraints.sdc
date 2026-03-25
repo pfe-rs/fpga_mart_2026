@@ -1,8 +1,6 @@
 # FIFO chip backend constraints for Yosys/OpenROAD
 # Single-clock top with one external stream input and one external stream output
 
-source src/instances.tcl
-
 #############################
 ## Driving Cells and Loads ##
 #############################
@@ -14,6 +12,7 @@ set_driving_cell -lib_cell sg13g2_IOPadOut16mA -pin pad [get_ports [list \
   rst_ni \
   in_valid_i \
   out_ready_i \
+  sw0_i \
   in_data_0_i in_data_1_i in_data_2_i in_data_3_i \
   in_data_4_i in_data_5_i in_data_6_i in_data_7_i \
 ]]
@@ -45,13 +44,27 @@ set_input_delay -clock clk_sys -min 0.0 [get_ports rst_ni]
 #############
 puts "Inputs..."
 # Input stream arriving from external logic.
-set_input_delay  -clock clk_sys -min 1.0 [get_ports {in_valid_i out_ready_i in_data_*_i}]
-set_input_delay  -clock clk_sys -max 3.0 [get_ports {in_valid_i out_ready_i in_data_*_i}]
+set_input_delay -clock clk_sys -min 1.0 [get_ports {in_valid_i out_ready_i sw0_i in_data_*_i}]
+set_input_delay -clock clk_sys -max 3.0 [get_ports {in_valid_i out_ready_i sw0_i in_data_*_i}]
 
 #############
 ## Outputs  ##
 #############
 puts "Outputs..."
 # Output stream observed by external logic.
-set_output_delay -clock clk_sys -min 1.0 [get_ports {in_ready_o out_valid_o out_data_*_o unused*_o}]
-set_output_delay -clock clk_sys -max 3.0 [get_ports {in_ready_o out_valid_o out_data_*_o unused*_o}]
+
+set_output_delay -clock clk_sys -min 1.0 [get_ports [list \
+  in_ready_o \
+  sedam_seg_0_o sedam_seg_1_o sedam_seg_2_o sedam_seg_3_o \
+  sedam_seg_4_o sedam_seg_5_o sedam_seg_6_o sedam_seg_7_o \
+  sedam_seg_8_o sedam_seg_9_o sedam_seg_10_o sedam_seg_11_o \
+  sedam_seg_12_o sedam_seg_13_o \
+]]
+
+set_output_delay -clock clk_sys -max 3.0 [get_ports [list \
+  in_ready_o \
+  sedam_seg_0_o sedam_seg_1_o sedam_seg_2_o sedam_seg_3_o \
+  sedam_seg_4_o sedam_seg_5_o sedam_seg_6_o sedam_seg_7_o \
+  sedam_seg_8_o sedam_seg_9_o sedam_seg_10_o sedam_seg_11_o \
+  sedam_seg_12_o sedam_seg_13_o \
+]]

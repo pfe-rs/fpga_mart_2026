@@ -10,5 +10,4 @@
 ../rtl/accumulator.sv
 ../rtl/byte_serializer.sv
 ../rtl/pfe.sv
-../rtl/pfe_soc.sv
 ../rtl/pfe_chip.sv

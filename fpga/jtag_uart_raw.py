@@ -369,10 +369,44 @@ def main():
 
             elif cmd.startswith("hex "):
                 try:
-                    hex_parts = user_input.strip()[4:].split()
-                    tx_bytes = bytes(int(h, 16) for h in hex_parts)
+                    payload = user_input.strip()[4:].strip()
+                    hex_parts = payload.split()
+
+                    # Case 1: spaced raw bytes, e.g. "hex 01 04 11 FF"
+                    if len(hex_parts) > 1:
+                        tx_bytes = bytes(int(h, 16) for h in hex_parts)
+
+                    # Case 2: compact 3-hex-digit value, e.g. "hex ABC"
+                    elif len(payload) == 3:
+                        value = int(payload, 16)
+                        tx_bytes = bytes([
+                            value & 0xFF,         # low byte first
+                            (value >> 8) & 0x0F   # upper nibble in low 4 bits
+                        ])
+
+                    # Case 3: compact 2-hex-digit value, e.g. "hex 7F"
+                    elif len(payload) == 2:
+                        value = int(payload, 16)
+                        tx_bytes = bytes([value])
+
+                    # Optional: support 4 hex digits too, e.g. "hex 0ABC" or "hex 1234"
+                    elif len(payload) == 4:
+                        value = int(payload, 16)
+                        tx_bytes = bytes([
+                            value & 0xFF,
+                            (value >> 8) & 0xFF
+                        ])
+
+                    else:
+                        raise ValueError("unsupported hex format")
+
                 except ValueError:
-                    print("  Error: Invalid hex format. Use: hex 01 04 11 FF")
+                    print("  Error: Invalid hex format.")
+                    print("  Use either:")
+                    print("    hex 01 04 11 FF")
+                    print("    hex ABC")
+                    print("    hex 7F")
+                    print("    hex 0ABC")
                     print()
                     continue
 
@@ -400,7 +434,46 @@ def main():
                     print("  As string: {}".format(format_rx_string(rx)))
                 else:
                     print("  No response received.")
+            elif cmd.startswith("bin "):
+                try:
+                    payload = user_input.strip()[4:].strip()
 
+                    # dozvoli samo tacno 8 bita
+                    if len(payload) != 8 or any(ch not in "01" for ch in payload):
+                        raise ValueError("binary input must be exactly 8 bits")
+
+                    value = int(payload, 2)
+                    tx_bytes = bytes([value])
+
+                except ValueError:
+                    print("  Error: Invalid binary format.")
+                    print("  Use: bin xxxxxxxx")
+                    print("  Example: bin 10101100")
+                    print()
+                    continue
+
+                print("  Sending 1 raw byte: 0b{} (0x{:02X})".format(payload, tx_bytes[0]))
+
+                offset = 0
+                while offset < len(tx_bytes):
+                    n = ja.write(tx_bytes[offset:])
+                    if n == 0:
+                        time.sleep(0.01)
+                        continue
+                    offset += n
+                ja.flush()
+                print("  Sent OK.")
+
+                # Read response
+                print("  Waiting for response...")
+                time.sleep(0.2)
+                rx = ja.read()
+                if rx:
+                    print("  Received {} bytes:".format(len(rx)))
+                    print(format_rx_bytes(rx))
+                    print("  As string: {}".format(format_rx_string(rx)))
+                else:
+                    print("  No response received.")
             elif cmd.startswith("int"):
                 # Parse format: int8, int16, int32, int8s, int16s, int32s
                 try:

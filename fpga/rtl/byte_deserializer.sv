@@ -13,7 +13,7 @@
 // When NUM_BYTES=1, acts as a simple valid/ready register stage.
 
 module byte_deserializer #(
-    parameter int unsigned NUM_BYTES = 4
+    parameter int unsigned NUM_BYTES = 2
 ) (
     input  logic                   clk,
     input  logic                   rst_n,
@@ -32,7 +32,7 @@ module byte_deserializer #(
     localparam int unsigned WIDTH = NUM_BYTES * 8;
 
     logic [WIDTH-1:0] shift_reg;
-    assign out_data = shift_reg;
+//    assign out_data = shift_reg;
 
     generate
         if (NUM_BYTES == 1) begin : gen_single
@@ -52,6 +52,7 @@ module byte_deserializer #(
           // Accept input when not full, or when full word is being consumed this cycle
           assign in_ready  = !full || out_ready;
           assign out_valid = full;
+          assign out_data = shift_reg;
 
           always_ff @(posedge clk or negedge rst_n) begin
               if (!rst_n) begin

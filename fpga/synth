@@ -1,0 +1,24 @@
+read_verilog rtl/jtag_uart_top.v
+read_verilog rtl/jtag_uart_controller.v
+read_verilog rtl/fifo.v
+read_verilog -sv rtl/pfe.sv
+read_verilog -sv rtl/byte_deserializer.sv
+read_verilog -sv rtl/byte_serializer.sv
+
+hierarchy -top jtag_uart_top
+
+proc
+opt
+fsm
+opt
+memory
+opt
+
+techmap
+opt
+
+dfflibmap -liberty /putanja/do/sg13g2_stdcell.lib
+abc -liberty /putanja/do/sg13g2_stdcell.lib
+
+stat -liberty /putanja/do/sg13g2_stdcell.lib
+write_verilog synth/jtag_uart_top_syn.v

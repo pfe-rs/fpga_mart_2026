@@ -1,0 +1,18 @@
+read_verilog -sv rtl/pfe.sv
+
+hierarchy -top pfe
+check
+
+proc
+opt
+fsm
+opt
+memory
+opt
+
+techmap
+opt
+
+stat
+
+write_verilog synth_netlist.v

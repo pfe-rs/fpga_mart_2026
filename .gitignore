@@ -9,4 +9,5 @@ jtag_uart_sys/
 db/
 incremental_db/
 build/
-images/*_received.png
+images/pfe_received.png
+pfe_mart_push.sh

@@ -2,13 +2,15 @@
 
 module jtag_uart_top (
     input wire CLOCK_50,
-    input wire RSTN
+    input wire RSTN,
+    input wire SW0,
+    output wire [20:0] sedam_seg_o
 );
 
     // =====================================================
     // Change this parameter to set the word width
     // =====================================================
-    localparam NUM_BYTES = 4;   // 4 bytes = 32 bits
+    localparam NUM_BYTES = 1;   // 4 bytes = 32 bits
     // =====================================================
 
     wire rst_n = RSTN;
@@ -80,7 +82,7 @@ module jtag_uart_top (
 
     // FIFO between ctrl and deserializer
     fifo #(
-      .DSIZE (8),
+      .DSIZE(8),
       .ASIZE (8)
     ) u_fifo_deser (
       .clk_i        (CLOCK_50),     
@@ -109,7 +111,7 @@ module jtag_uart_top (
 
     // PFE module
     pfe #(
-        .DSIZE (4*8)
+        .NUM_BYTES(NUM_BYTES)
     ) u_pfe (
         .clk_i        (CLOCK_50),
         .rst_ni       (rst_n),
@@ -118,7 +120,9 @@ module jtag_uart_top (
         .in_ready_o   (deser_pfe_ready),
         .out_data_o   (pfe_ser_data),
         .out_valid_o  (pfe_ser_valid),
-        .out_ready_i  (pfe_ser_ready)
+        .out_ready_i  (pfe_ser_ready),
+        .sedam_seg_o (sedam_seg_o),
+        .sw0_i        (SW0)
     );
 
     byte_serializer #(
@@ -135,7 +139,7 @@ module jtag_uart_top (
     );
 
     fifo #(
-      .DSIZE (8), 
+      .DSIZE(8), 
       .ASIZE (8)
     ) u_fifo_ser (
       .clk_i        (CLOCK_50),     
