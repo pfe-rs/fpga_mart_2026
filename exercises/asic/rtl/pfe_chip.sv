@@ -108,9 +108,7 @@ module pfe_chip (
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio3();
 
   pfe_soc #(
-    .DSIZE    (   8 ),
-    .ASIZE    (   8 ),
-    .USE_SRAM ( 1'b1 )
+    .DSIZE    (   8 )
   )
   i_fifo_soc (
     .clk_i          ( soc_clk_i       ),
