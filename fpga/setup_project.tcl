@@ -20,6 +20,7 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 256
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
 
 # --- Source files ---
 set_global_assignment -name VERILOG_FILE ./rtl/jtag_uart_top.v
@@ -38,6 +39,43 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLOCK_50
 # --- RESET_N ---
 set_location_assignment PIN_AA14 -to RSTN
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to RSTN
+
+# Push-button (KEY0)
+set_location_assignment PIN_AA15 -to pw
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to pw
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to pw
+
+# LED outputs
+set_location_assignment PIN_V16 -to nsg
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to nsg
+
+set_location_assignment PIN_W16 -to nsy
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to nsy
+
+set_location_assignment PIN_V17 -to ar
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ar
+
+set_location_assignment PIN_V18 -to ewy
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ewy
+
+set_location_assignment PIN_W17 -to ewg
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ewg
+
+# HEX0 (7-segment display)
+set_location_assignment PIN_AE26 -to HEX0[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX0[0]
+set_location_assignment PIN_AE27 -to HEX0[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX0[1]
+set_location_assignment PIN_AE28 -to HEX0[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX0[2]
+set_location_assignment PIN_AG27 -to HEX0[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX0[3]
+set_location_assignment PIN_AF28 -to HEX0[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX0[4]
+set_location_assignment PIN_AG28 -to HEX0[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX0[5]
+set_location_assignment PIN_AH28 -to HEX0[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HEX0[6]
 
 export_assignments
 project_close

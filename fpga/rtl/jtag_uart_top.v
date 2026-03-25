@@ -2,7 +2,16 @@
 
 module jtag_uart_top (
     input wire CLOCK_50,
-    input wire RSTN
+    input wire RSTN,
+    
+
+    input wire pw,
+    output wire ar,
+    output wire nsy,
+    output wire nsg,
+    output wire ewy,
+    output wire ewg,
+    output wire [6:0] HEX0
 );
 
     // =====================================================
@@ -12,7 +21,7 @@ module jtag_uart_top (
     // =====================================================
 
     wire rst_n = RSTN;
-
+    
     // Avalon-MM bus
     wire        av_chipselect;
     wire        av_address;
@@ -45,6 +54,8 @@ module jtag_uart_top (
     wire [NUM_BYTES*8-1:0] pfe_ser_data;
     wire                   pfe_ser_valid;
     wire                   pfe_ser_ready;
+    
+
 
     // Platform Designer system
     jtag_uart_sys u_sys (
@@ -91,6 +102,7 @@ module jtag_uart_top (
       .out_data_o   (fifo_deser_data),
       .out_valid_o  (fifo_deser_valid),
       .out_ready_i  (fifo_deser_ready)
+      
     );
 
     byte_deserializer #(
@@ -109,16 +121,23 @@ module jtag_uart_top (
 
     // PFE module
     pfe #(
-        .DSIZE (4*8)
+        .NUM_BYTES ()
     ) u_pfe (
-        .clk_i        (CLOCK_50),
-        .rst_ni       (rst_n),
-        .in_data_i    (deser_pfe_data),
-        .in_valid_i   (deser_pfe_valid),
-        .in_ready_o   (deser_pfe_ready),
-        .out_data_o   (pfe_ser_data),
-        .out_valid_o  (pfe_ser_valid),
-        .out_ready_i  (pfe_ser_ready)
+        .clk        (CLOCK_50),
+        .rst_n       (rst_n),
+        .in_data    (deser_pfe_data),
+        .in_valid   (deser_pfe_valid),
+        .in_ready   (deser_pfe_ready),
+        .out_data   (pfe_ser_data),
+        .out_valid  (pfe_ser_valid),
+        .out_ready  (pfe_ser_ready),
+        .pw(pw),
+        .ar(ar),
+        .nsy(nsy),
+        .nsg(nsg),
+        .ewy(ewy),
+        .ewg(ewg),
+        .HEX0 (HEX0)
     );
 
     byte_serializer #(
@@ -147,6 +166,7 @@ module jtag_uart_top (
       .out_valid_o  (fifo_ctrl_valid),
       .out_ready_i  (fifo_ctrl_ready)
     );
+   
 
 endmodule
 
