@@ -26,8 +26,8 @@ module pfe_chip (
   output wire out_data_6_o,
   output wire out_data_7_o,
 
-  output wire unused0_o,
-  output wire unused1_o,
+  input wire  rx,
+  output wire tx,
 
   inout wire VDD,
   inout wire VSS,
@@ -36,25 +36,14 @@ module pfe_chip (
 ); 
     logic soc_clk_i;
     logic soc_rst_ni;
-    logic soc_ref_clk_i;
-    logic soc_testmode_i;
-
-    logic soc_jtag_tck_i;
-    logic soc_jtag_trst_ni;
-    logic soc_jtag_tms_i;
-    logic soc_jtag_tdi_i;
-    logic soc_jtag_tdo_o;
-
-    logic soc_status_o;
-
-    localparam int unsigned DataCount = 16;
+    logic soc_rx_i, soc_tx_o;
 
     logic                 soc_in_valid_i;
     logic                 soc_in_ready_o;
-    logic [DataCount-1:0] soc_in_data_i; 
+    logic [7:0]           soc_in_data_i;
     logic                 soc_out_valid_o;
-    logic                 soc_out_ready_i;            
-    logic [DataCount-1:0] soc_out_data_o;
+    logic                 soc_out_ready_i;
+    logic [7:0] soc_out_data_o;
 
     sg13g2_IOPadIn        pad_clk_i        (.pad(clk_i),        .p2c(soc_clk_i));
     sg13g2_IOPadIn        pad_rst_ni       (.pad(rst_ni),       .p2c(soc_rst_ni));
@@ -83,8 +72,8 @@ module pfe_chip (
     sg13g2_IOPadOut16mA   pad_out_data_6_o  (.pad(out_data_6_o),  .c2p(soc_out_data_o[6]));
     sg13g2_IOPadOut16mA   pad_out_data_7_o  (.pad(out_data_7_o),  .c2p(soc_out_data_o[7]));
 
-    sg13g2_IOPadOut16mA pad_unused0_o      (.pad(unused0_o),    .c2p(soc_status_o));
-    sg13g2_IOPadOut16mA pad_unused1_o      (.pad(unused1_o),    .c2p(soc_status_o));
+    sg13g2_IOPadOut16mA   pad_tx            (.pad(tx),            .c2p(soc_tx_o));
+    sg13g2_IOPadIn        pad_rx            (.pad(rx),            .p2c(soc_rx_i));
 
 
     (* dont_touch = "true" *)sg13g2_IOPadVdd pad_vdd0();
@@ -107,12 +96,10 @@ module pfe_chip (
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio2();
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio3();
 
-  pfe_soc #(
-    .DSIZE    (   8 ),
-    .ASIZE    (   8 ),
-    .USE_SRAM ( 1'b1 )
+  pfe #(
+    .DSIZE    (   8 )
   )
-  i_fifo_soc (
+  i_pfe (
     .clk_i          ( soc_clk_i       ),
     .rst_ni         ( soc_rst_ni      ),
     .in_valid_i     ( soc_in_valid_i  ),
@@ -120,9 +107,9 @@ module pfe_chip (
     .in_data_i      ( soc_in_data_i   ),
     .out_valid_o    ( soc_out_valid_o ),
     .out_ready_i    ( soc_out_ready_i ),
-    .out_data_o     ( soc_out_data_o  )
+    .out_data_o     ( soc_out_data_o  ),
+    .tx             ( soc_tx_o        ),
+    .rx             ( soc_rx_i        )
   );
-
-  assign soc_status_o = 1'b1;
 
 endmodule

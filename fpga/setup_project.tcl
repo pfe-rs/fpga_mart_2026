@@ -26,6 +26,8 @@ set_global_assignment -name VERILOG_FILE ./rtl/jtag_uart_top.v
 set_global_assignment -name VERILOG_FILE ./rtl/jtag_uart_controller.v
 set_global_assignment -name VERILOG_FILE ./rtl/fifo.v
 set_global_assignment -name SYSTEMVERILOG_FILE ./rtl/pfe.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ./rtl/pfe1.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ./rtl/pfe2.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ./rtl/byte_deserializer.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ./rtl/byte_serializer.sv
 set_global_assignment -name QIP_FILE jtag_uart_sys/synthesis/jtag_uart_sys.qip
@@ -38,6 +40,12 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLOCK_50
 # --- RESET_N ---
 set_location_assignment PIN_AA14 -to RSTN
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to RSTN
+
+set_location_assignment PIN_AC18 -to rx
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rx
+set_location_assignment PIN_Y17 -to tx
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to tx
+
 
 export_assignments
 project_close

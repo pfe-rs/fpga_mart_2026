@@ -15,7 +15,7 @@ module pfe #(
     output logic tx
 );
 
-    pfe1 #(8,50000000 ,9600) dut_tx (
+    pfe1 #(DSIZE, CLK_RATE, BAUD_RATE) dut_tx (
         .clk_i(clk_i), 
         .rst_ni(rst_ni),
         .in_data_i(in_data_i), 
@@ -23,13 +23,13 @@ module pfe #(
         .in_ready_o(in_ready_o),
         .tx(tx)
     );
-    pfe2 #(8, 5208, 13) dut_rx (
+    pfe2 #(DSIZE, TPB, 14) dut_rx (
         .clk_i(clk_i), 
-        .out_ready_i(out_ready_i), 
+        .out_data_o(out_ready_i), 
         .rx(rx),
         .out_data_o(out_data_o), 
         .out_valid_o(out_valid_o), 
-        .busy()
+        .in_ready_o(in_ready_o)
     );
 
 endmodule

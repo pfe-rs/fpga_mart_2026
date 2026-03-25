@@ -22,9 +22,9 @@ set_driving_cell -lib_cell sg13g2_IOPadOut16mA -pin pad [get_ports [list \
 ##################
 puts "Clocks..."
 
-# 100 MHz system clock
-set TCK_SYS 10.0
-create_clock -name clk_sys -period $TCK_SYS [get_ports clk_i]
+# 50 MHz system clock
+set TCK_SYS 20.0
+create_cloc -name clk_sys -period $TCK_SYS [get_ports clk_i]
 
 # Reasonable clock quality assumptions
 set_clock_uncertainty 0.10 [get_clocks clk_sys]
