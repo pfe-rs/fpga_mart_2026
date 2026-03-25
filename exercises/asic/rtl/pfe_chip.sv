@@ -75,6 +75,9 @@ module pfe_chip (
     logic                 soc_out_ready_i;            
     logic [DataCount-1:0] soc_out_data_o;
 
+
+    
+
     sg13g2_IOPadIn        pad_clk_i        (.pad(clk_i),        .p2c(soc_clk_i));
     sg13g2_IOPadIn        pad_rst_ni       (.pad(rst_ni),       .p2c(soc_rst_ni));
 
@@ -139,6 +142,26 @@ module pfe_chip (
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio2();
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio3();
 
+
+
+    pfe_soc #(
+    .DSIZE(8),
+    .ASIZE(8)
+  ) i_pfe_soc (
+    .clk_i      (soc_clk_i),
+    .rst_ni     (soc_rst_ni),
+    .pw         (soc_pw),
+    .in_valid_i (soc_in_valid_i),
+    .in_ready_o (soc_in_ready_o),
+    .out_valid_o(soc_out_valid_o),
+    .out_ready_i(soc_out_ready_i),
+    .ar         (soc_ar),
+    .nsg        (soc_nsg),
+    .nsy        (soc_nsy),
+    .ewg        (soc_ewg),
+    .ewy        (soc_ewy),
+    .HEX0       (soc_HEX0)
+  );
  
   //ovde mozda nesto
 
