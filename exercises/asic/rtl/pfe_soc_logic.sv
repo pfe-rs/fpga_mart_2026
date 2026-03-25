@@ -1,56 +1,114 @@
-module pfe_soc #(
-  parameter int unsigned DSIZE    = 8,
-  parameter int unsigned ASIZE    = 8,
-  parameter bit          USE_SRAM = 1'b1
-) (
-  input  logic             clk_i,
-  input  logic             rst_ni,
-
-  input  logic             in_valid_i,
-  output logic             in_ready_o,
-  input  logic [DSIZE-1:0] in_data_i,
-
-  output logic             out_valid_o,
-  input  logic             out_ready_i,
-  output logic [DSIZE-1:0] out_data_o
+module pfe #(
+    parameter int DSIZE  = 24
+)(
+    input logic clk_i,
+    input logic rst_ni,
+     input logic btn,
+    input logic [DSIZE-1:0] in_data_i,
+    input  logic in_valid_i,
+    output logic in_ready_o,
+    output logic [10-1:0] out_data_o,
+    output logic out_valid_o,
+    input  logic out_ready_i
 );
+    assign in_ready_o = out_ready_i;
+    assign out_valid_o = in_valid_i;
+    logic btn_rising;
+    logic btn_pret;
+    always_ff @(posedge clk_i or negedge rst_ni)begin
+     if(!rst_ni)btn_pret <= 0;
+     else btn_pret <= btn;
+    end
+    assign btn_rising = btn && (!btn_pret);
+    logic ans_;
+    always_ff @(posedge clk_i or negedge rst_ni)begin
+          if(!rst_ni)ans_ <= 0;
+          else if(btn_rising) ans_ <= 1;
+          else if(in_valid_i)ans_ <= 0;
+    end
+    logic [7:0]opcode;
+    logic signed [7:0]a;
+    logic signed [7:0]b;
+    logic signed [7:0] rezultat;
+    logic signed [7:0] ans;
+    logic zero, overflow;
+    always_ff @(posedge clk_i or negedge rst_ni)begin
+          if(!rst_ni)ans <= 0;
+          else if(in_valid_i)ans <= rezultat;
+    end
+    always_comb begin
 
-  logic bit_0_r;
+     opcode = in_data_i[23:16];
+     a = (ans_) ? ans:in_data_i[15:8];
+     b = in_data_i[7:0];
 
-  // Simple pass-through handshake
-  assign in_ready_o  = out_ready_i;
-  assign out_valid_o = in_valid_i;
+    if(opcode == 4'd0)
+        begin
+             rezultat = a + b;
+             zero = rezultat == 0;
+             overflow = (a[7] && b[7]);
+        end
+    else if(opcode == 4'd1)
+        begin
+             rezultat = a - b;
+             zero = (a == b);
+             overflow = ((b - a) > 8'd127 || (b - a) < -8'sd127);
 
-  // Register bit 0
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni)
-      bit_0_r <= 1'b0;
+        end
+    else if(opcode == 4'd2)
+        begin
+             rezultat = (a > b)?a : b;
+             zero = (rezultat == 0);
+             overflow = 0;
+        end
+    else if(opcode == 4'd3)
+        begin
+             rezultat = (a > b)?b : a;
+             zero = (rezultat == 0);
+             overflow = 0;
+        end
+   else if(opcode == 4'd4)
+   begin
+     rezultat = (a == b);
+     zero = rezultat == 0;
+     overflow = 0;
+   end
+    else if(opcode == 4'd5)
+    begin
+         rezultat = a << b;
+         zero = rezultat == 0;
+         overflow = (rezultat < 0);
+    end
+    else if(opcode == 4'd6)
+    begin
+         rezultat = a >> b;
+         zero = rezultat == 0;
+         overflow = 0;
+    end
+    else if(opcode == 4'd7)
+    begin
+         rezultat = (a & b);
+         zero = rezultat == 0;
+         overflow = 0;
+    end
+    else if(opcode == 4'd8)
+    begin
+         rezultat = (a | b);
+         zero = rezultat == 0;
+         overflow = 0;
+    end
+    else if(opcode == 4'd9)
+    begin
+         rezultat = (a ^ b);
+         zero = rezultat == 0;
+         overflow = 0;
+    end
     else
-      bit_0_r <= in_data_i[0];
-  end
-
-  //  bit 0: registered
-  assign out_data_o[0] = bit_0_r;
-
-  // bit 1: invert input bit 1
-  assign out_data_o[1] = ~in_data_i[1];
-
-  // bit 2: add bits 2 and 1
-  assign out_data_o[2] = in_data_i[2] + in_data_i[1];
-
-  // bit 3: multiply bits 3 and 2
-  assign out_data_o[3] = in_data_i[3] * in_data_i[2];
-
-  // bit 4: XOR of bits 4 and 3
-  assign out_data_o[4] = (!in_data_i[4] && in_data_i[3]) || (in_data_i[4] && !in_data_i[3]);
-
-  // bit 5: NAND of bits 5 and 4
-  assign out_data_o[5] = !(in_data_i[5] && in_data_i[4]);
-
-  // bit 6: NOR of bits 7 and 6
-  assign out_data_o[6] = !(in_data_i[7] || in_data_i[6]);
-
-  // bit 7: tie to 1
-  assign out_data_o[7] = 1'b1;
-
+    begin
+            rezultat = -1;
+            zero = 1;
+            overflow = 0;
+    end
+    out_data_o = {rezultat, zero, overflow};
+    end
 endmodule

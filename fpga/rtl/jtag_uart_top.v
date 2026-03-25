@@ -2,13 +2,14 @@
 
 module jtag_uart_top (
     input wire CLOCK_50,
-    input wire RSTN
+    input wire RSTN,
+    input wire KEY
 );
 
     // =====================================================
     // Change this parameter to set the word width
     // =====================================================
-    localparam NUM_BYTES = 4;   // 4 bytes = 32 bits
+    localparam NUM_BYTES = 3;   // 4 bytes = 32 bits
     // =====================================================
 
     wire rst_n = RSTN;
@@ -113,8 +114,10 @@ module jtag_uart_top (
     ) u_pfe (
         .clk_i        (CLOCK_50),
         .rst_ni       (rst_n),
+        .btn(KEY),
         .in_data_i    (deser_pfe_data),
         .in_valid_i   (deser_pfe_valid),
+        
         .in_ready_o   (deser_pfe_ready),
         .out_data_o   (pfe_ser_data),
         .out_valid_o  (pfe_ser_valid),
