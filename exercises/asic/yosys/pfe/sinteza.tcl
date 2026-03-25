@@ -31,7 +31,7 @@ foreach file $lib_list {
 # TODO: Zadatak 3: Ucitavanje dizajna
 ##############################################################################
 yosys plugin -i slang.so
-yosys read_slang --no-proc --top pfe_chip -f ./src/pfe.flist --keep-hierarchy
+yosys read_slang --no-proc --top pfe_chip -D USE_SRAM=0 -f ./src/pfe.flist --keep-hierarchy
 
 # # ispisivanje u komandnoj liniji
 yosys stat 
@@ -41,11 +41,6 @@ yosys tee -q -o "reports/pfe_parsed.rpt" stat
 
 # generisati netlistu
 yosys write_verilog -norename -noexpr "out/pfe_parsed.v" 
-
-yosys setattr -set keep_hierarchy 1 "t:pfe_soc$*"
-yosys setattr -set keep_hierarchy 1 "t:accumulator$*"
-
-yosys blackbox "t:RM_IHPSG13_2P_256x8_c2_bm_bist$*"
 
 yosys attrmap -rename dont_touch keep
 yosys attrmap -tocase keep -imap keep="true" keep=1
@@ -57,6 +52,7 @@ yosys attrmvcp -copy -attr keep
 yosys hierarchy -top pfe_chip
 yosys check
 yosys proc
+
 
 yosys tee -q -o "reports/pfe_elaborated.rpt" stat
 yosys write_verilog -norename -noexpr -attr2comment out/pfe_elaborated.v
@@ -123,8 +119,12 @@ set abc_comb_script "scripts/abc-opt.script"
 yosys abc {*}$tech_cells_args -D $period_ps \
         -script $abc_comb_script -constr src/pfe.constr {*}[list] -showtmp
 
+# Add this before Task 10 in sinteza.tcl
+yosys delete t:RM_IHPSG13_2P_256x8_c2_bm_bist
+# Add this to sinteza.tcl before write_verilog
+yosys delete i_fifo_soc/i_fifo_in.gen_sram.i_sram
+yosys delete i_fifo_soc/i_fifo_out.gen_sram.i_sram
 yosys clean -purge
-
 ##############################################################################
 # TODO: Zadatak 10: Priprema za OpenROAD
 ##############################################################################

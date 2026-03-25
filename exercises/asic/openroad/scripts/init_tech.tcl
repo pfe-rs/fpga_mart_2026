@@ -8,7 +8,7 @@
 # - Philippe Sauter   <phsauter@iis.ee.ethz.ch>
 
 # Initialize the PDK
-
+define_corners tt ff
 if {[file exists "../technology"]} {
 	utl::report "Init tech from ETHZ DZ cockpit"
 	set pdk_dir "../technology"
@@ -34,7 +34,6 @@ if {[file exists "../technology"]} {
 set pdk_pad_lef   ../ihp13/bondpad/lef
 
 # LIB
-define_corners tt ff
 
 puts "Init standard cells"
 read_liberty -corner tt ${pdk_cells_lib}/sg13g2_stdcell_typ_1p20V_25C.lib
