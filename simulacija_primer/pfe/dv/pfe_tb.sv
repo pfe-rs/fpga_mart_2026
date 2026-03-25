@@ -12,8 +12,8 @@ module pfe_tb;
     // Test stimulus - edit these arrays to change
     // what gets sent and what is expected
     // ──────────────────────────────────────────────
-    logic [DSIZE-1:0] input_data []    = '{8'hA0, 8'hB1, 8'hC2, 8'hD3, 8'hE4, 8'h01, 8'h02, 8'h03};
-    logic [DSIZE-1:0] expected_data [] = '{8'hA0, 8'hB1, 8'hC2, 8'hD3, 8'hE4, 8'h01, 8'h02, 8'h03};
+    logic [DSIZE-1:0] input_data []    = '{8'h03, 8'hB1, 8'hC2, 8'hD3, 8'hE4, 8'h01, 8'h02, 8'h03};
+    logic [DSIZE-1:0] expected_data [] = '{8'h03, 8'hB1, 8'hC2, 8'hD3, 8'hE4, 8'h01, 8'h02, 8'h03};
 
     // ──────────────────────────────────────────────
     // DUT signals
