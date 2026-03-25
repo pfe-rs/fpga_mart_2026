@@ -8,7 +8,7 @@ module jtag_uart_top (
     // =====================================================
     // Change this parameter to set the word width
     // =====================================================
-    localparam NUM_BYTES = 4;   // 4 bytes = 32 bits
+
     // =====================================================
 
     wire rst_n = RSTN;
@@ -39,14 +39,14 @@ module jtag_uart_top (
     wire       ser_fifo_ready;
 
     // SER/DESER to PFE
-    wire [NUM_BYTES*8-1:0] deser_pfe_data;
+    wire [23:0] deser_pfe_data;
     wire                   deser_pfe_valid;
     wire                   deser_pfe_ready;
-    wire [NUM_BYTES*8-1:0] pfe_ser_data;
+    wire [7:0] pfe_ser_data;
     wire                   pfe_ser_valid;
     wire                   pfe_ser_ready;
 
-    // Platform Designer system
+    Platform Designer system
     jtag_uart_sys u_sys (
         .clk_clk                              (CLOCK_50),
         .reset_reset_n                        (rst_n),
@@ -83,9 +83,9 @@ module jtag_uart_top (
       .DSIZE (8),
       .ASIZE (8)
     ) u_fifo_deser (
-      .clk_i        (CLOCK_50),     
+      .clk_i        (CLOCK_50),
       .rst_ni       (rst_n),
-      .in_data_i    (ctrl_fifo_data),    
+      .in_data_i    (ctrl_fifo_data),
       .in_valid_i   (ctrl_fifo_valid),
       .in_ready_o   (ctrl_fifo_ready),
       .out_data_o   (fifo_deser_data),
@@ -94,7 +94,7 @@ module jtag_uart_top (
     );
 
     byte_deserializer #(
-        .NUM_BYTES (NUM_BYTES)
+        .NUM_BYTES (3)
     ) u_deserializer (
         .clk      (CLOCK_50),
         .rst_n    (rst_n),
@@ -109,20 +109,21 @@ module jtag_uart_top (
 
     // PFE module
     pfe #(
-        .DSIZE (4*8)
+        .DSIZE (16)
     ) u_pfe (
-        .clk_i        (CLOCK_50),
-        .rst_ni       (rst_n),
-        .in_data_i    (deser_pfe_data),
-        .in_valid_i   (deser_pfe_valid),
-        .in_ready_o   (deser_pfe_ready),
-        .out_data_o   (pfe_ser_data),
-        .out_valid_o  (pfe_ser_valid),
-        .out_ready_i  (pfe_ser_ready)
+        .clk_i(CLOCK_50),
+        .rst_ni(rst_n),
+        .config_data(deser_pfe_data),
+        .config_valid(deser_pfe_valid),
+        .config_ready(deser_pfe_ready),
+        .data_out(pfe_ser_data),
+        .data_valid(pfe_ser_valid),
+        .data_ready(pfe_ser_ready)
     );
 
+
     byte_serializer #(
-        .NUM_BYTES (NUM_BYTES)
+        .NUM_BYTES (1)
     ) u_serializer (
         .clk      (CLOCK_50),
         .rst_n    (rst_n),
@@ -135,11 +136,11 @@ module jtag_uart_top (
     );
 
     fifo #(
-      .DSIZE (8), 
+      .DSIZE (8),
       .ASIZE (8)
     ) u_fifo_ser (
-      .clk_i        (CLOCK_50),     
-      .rst_ni       (rst_n),    
+      .clk_i        (CLOCK_50),
+      .rst_ni       (rst_n),
       .in_data_i    (ser_fifo_data),
       .in_valid_i   (ser_fifo_valid),
       .in_ready_o   (ser_fifo_ready),
