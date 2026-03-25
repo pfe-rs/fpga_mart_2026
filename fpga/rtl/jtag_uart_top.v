@@ -2,7 +2,16 @@
 
 module jtag_uart_top (
     input wire CLOCK_50,
-    input wire RSTN
+    input wire RSTN,
+    
+    output wire [7:0] VGA_R, 
+    output wire [7:0] VGA_G, 
+    output wire [7:0] VGA_B,
+    output wire VGA_HS, 
+    output wire VGA_VS, 
+    output wire VGA_CLK, 
+    output wire VGA_BLANK_N, 
+    output wire VGA_SYNC_N
 );
 
     // =====================================================
@@ -45,6 +54,16 @@ module jtag_uart_top (
     wire [NUM_BYTES*8-1:0] pfe_ser_data;
     wire                   pfe_ser_valid;
     wire                   pfe_ser_ready;
+    
+    reg clk_25 = 0;
+    
+    //Clock 25MHz
+    always @(posedge CLOCK_50) begin
+    	clk_25 <= ~clk_25;
+    end
+    
+    assign VGA_CLK = clk_25;
+    assign VGA_SYNC_N = 1'b0;
 
     // Platform Designer system
     jtag_uart_sys u_sys (
@@ -109,16 +128,23 @@ module jtag_uart_top (
 
     // PFE module
     pfe #(
-        .DSIZE (4*8)
+        .DSIZE (4*8),
+        .bit_color(8)
     ) u_pfe (
-        .clk_i        (CLOCK_50),
+        .clk_i        (clk_25),
         .rst_ni       (rst_n),
         .in_data_i    (deser_pfe_data),
         .in_valid_i   (deser_pfe_valid),
         .in_ready_o   (deser_pfe_ready),
         .out_data_o   (pfe_ser_data),
         .out_valid_o  (pfe_ser_valid),
-        .out_ready_i  (pfe_ser_ready)
+        .out_ready_i  (pfe_ser_ready),
+        .h_sync       (VGA_HS),
+        .v_sync       (VGA_VS),
+        .R            (VGA_R),
+        .G            (VGA_G),
+        .B            (VGA_B),
+        .display_active (VGA_BLANK_N)
     );
 
     byte_serializer #(
