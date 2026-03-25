@@ -1,7 +1,7 @@
 module fifo #(
-  parameter int unsigned DSIZE    = 8,
+  parameter int unsigned DSIZE    = 24,
   parameter int unsigned ASIZE    = 8,
-  parameter bit          USE_SRAM = 1'b1
+  parameter bit          USE_SRAM = 1'b0
 ) (
   input  logic             clk_i,
   input  logic             rst_ni,
@@ -12,7 +12,7 @@ module fifo #(
 
   output logic             out_valid_o,
   input  logic             out_ready_i,
-  output logic [DSIZE-1:0] out_data_o
+  output logic [10- 1:0] out_data_o
 );
 
   localparam int unsigned Depth = (1 << ASIZE);

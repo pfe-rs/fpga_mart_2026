@@ -39,6 +39,8 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLOCK_50
 set_location_assignment PIN_AA14 -to RSTN
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to RSTN
 
+set_location_assignment PIN_AA15 -to KEY
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to KEY
 export_assignments
 project_close
 
