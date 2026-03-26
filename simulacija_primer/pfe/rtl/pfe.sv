@@ -98,11 +98,11 @@ module convolution_3x3 #(
     output logic [DSIZE+7:0] acc_o,
     output logic out_valid_o
 );
-    int KERNEL[9] = '{0, 1, 0, 1, 2, 1, 0, 1, 0};
+    logic [DSIZE-1:0] KERNEL[9] = '{0, 1, 0, 1, 2, 1, 0, 1, 0};
 
-    shortint offsets[9] = '{ -shortint'(DIMENSION)-1, -shortint'(DIMENSION), -shortint'(DIMENSION)+1, 
+    logic[$clog2(DIMENSION*DIMENSION)-1:0] offsets[9] = '{ -(DIMENSION)-1, -(DIMENSION), -(DIMENSION)+1, 
                              -1,                      0,                     1, 
-                              shortint'(DIMENSION)-1,  shortint'(DIMENSION),  shortint'(DIMENSION)+1 };
+                              (DIMENSION)-1,  (DIMENSION),  (DIMENSION)+1 };
 
     typedef enum logic [1:0] { IDLE, WAIT_DATA, SUM, FINISH } state_t;
     state_t state;

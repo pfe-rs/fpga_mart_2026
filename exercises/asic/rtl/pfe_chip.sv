@@ -47,7 +47,7 @@ module pfe_chip (
 
     logic soc_status_o;
 
-    localparam int unsigned DataCount = 16;
+    localparam int unsigned DataCount = 8;
 
     logic                 soc_in_valid_i;
     logic                 soc_in_ready_o;
@@ -109,8 +109,7 @@ module pfe_chip (
 
   pfe_soc #(
     .DSIZE    (   8 ),
-    .ASIZE    (   8 ),
-    .USE_SRAM ( 1'b1 )
+    .ASIZE    (  10 )
   )
   i_fifo_soc (
     .clk_i          ( soc_clk_i       ),
