@@ -4,34 +4,9 @@ module pfe_chip (
   input  wire clk_i,
   input  wire rst_ni,
 
-    // Input stream (producer -> FIFO)
-  input  wire in_valid_i,
-  output wire in_ready_o,
-  // input  wire in_data_0_i,
-  // input  wire in_data_1_i,
-  // input  wire in_data_2_i,
-  // input  wire in_data_3_i,
-  // input  wire in_data_4_i,
-  // input  wire in_data_5_i,
-  // input  wire in_data_6_i,
-  // input  wire in_data_7_i,
-    
   input wire  pw,
 
-
-  // Output stream (FIFO -> consumer)
-  output wire out_valid_o,
-  input  wire out_ready_i,
-  // output wire out_data_0_o,
-  // output wire out_data_1_o,
-  // output wire out_data_2_o,
-  // output wire out_data_3_o,
-  // output wire out_data_4_o,
-  // output wire out_data_5_o,
-  // output wire out_data_6_o,
-  // output wire out_data_7_o,
-
-  output wire   HEX0 [6:0],
+  output wire   [6:0] HEX0,
   output wire  ar,
   output wire  nsy,
   output wire  nsg,
@@ -39,7 +14,6 @@ module pfe_chip (
   output wire ewg,
 
   output wire unused0_o,
-  output wire unused1_o,
 
   inout wire VDD,
   inout wire VSS,
@@ -59,7 +33,7 @@ module pfe_chip (
 
     logic soc_status_o;
  
-    logic soc_HEX0[6:0];
+    logic [6:0] soc_HEX0;
     logic soc_ar;
     logic soc_nsy;
     logic  soc_nsg;
@@ -82,26 +56,9 @@ module pfe_chip (
     sg13g2_IOPadIn        pad_rst_ni       (.pad(rst_ni),       .p2c(soc_rst_ni));
 
 
-    // in_data
-    sg13g2_IOPadIn        pad_in_valid_i    (.pad(in_valid_i),    .p2c(soc_in_valid_i));
-    sg13g2_IOPadOut16mA   pad_in_ready_o    (.pad(in_ready_o),    .c2p(soc_in_ready_o));
-
+  
     sg13g2_IOPadIn       pad_pw    (.pad(pw),    .p2c(soc_pw));
-    // sg13g2_IOPadIn        pad_in_data_6_i   (.pad(in_data_6_i),   .p2c(soc_in_data_i[6]));
-    // sg13g2_IOPadIn        pad_in_data_7_i   (.pad(in_data_7_i),   .p2c(soc_in_data_i[7]));
-
-    // out_data
-    sg13g2_IOPadOut16mA   pad_out_valid_o   (.pad(out_valid_o),   .c2p(soc_out_valid_o));
-    sg13g2_IOPadIn        pad_out_ready_i   (.pad(out_ready_i),   .p2c(soc_out_ready_i));
-    // sg13g2_IOPadOut16mA   pad_out_data_0_o  (.pad(out_data_0_o),  .c2p(soc_out_data_o[0]));
-    // sg13g2_IOPadOut16mA   pad_out_data_1_o  (.pad(out_data_1_o),  .c2p(soc_out_data_o[1]));
-    // sg13g2_IOPadOut16mA   pad_out_data_2_o  (.pad(out_data_2_o),  .c2p(soc_out_data_o[2]));
-    // sg13g2_IOPadOut16mA   pad_out_data_3_o  (.pad(out_data_3_o),  .c2p(soc_out_data_o[3]));
-    // sg13g2_IOPadOut16mA   pad_out_data_4_o  (.pad(out_data_4_o),  .c2p(soc_out_data_o[4]));
-    // sg13g2_IOPadOut16mA   pad_out_data_5_o  (.pad(out_data_5_o),  .c2p(soc_out_data_o[5]));
-    // sg13g2_IOPadOut16mA   pad_out_data_6_o  (.pad(out_data_6_o),  .c2p(soc_out_data_o[6]));
-    // sg13g2_IOPadOut16mA   pad_out_data_7_o  (.pad(out_data_7_o),  .c2p(soc_out_data_o[7]));
-
+  
 
     sg13g2_IOPadOut16mA pad_HEX0_0 (.pad(HEX0[0]), .c2p(soc_HEX0[0]));
     sg13g2_IOPadOut16mA pad_HEX0_1 (.pad(HEX0[1]), .c2p(soc_HEX0[1]));
@@ -144,24 +101,18 @@ module pfe_chip (
 
 
 
-    pfe_soc #(
-    .DSIZE(8),
-    .ASIZE(8)
-  ) i_pfe_soc (
-    .clk_i      (soc_clk_i),
-    .rst_ni     (soc_rst_ni),
-    .pw         (soc_pw),
-    .in_valid_i (soc_in_valid_i),
-    .in_ready_o (soc_in_ready_o),
-    .out_valid_o(soc_out_valid_o),
-    .out_ready_i(soc_out_ready_i),
-    .ar         (soc_ar),
-    .nsg        (soc_nsg),
-    .nsy        (soc_nsy),
-    .ewg        (soc_ewg),
-    .ewy        (soc_ewy),
-    .HEX0       (soc_HEX0)
-  );
+    // PFE module
+    pfe u_pfe (
+        .clk       (soc_clk_i),
+        .rst_n       (soc_rst_ni),
+        .pw(soc_pw),
+        .ar(soc_ar),
+        .nsy(soc_nsy),
+        .nsg(soc_nsg),
+        .ewy(soc_ewy),
+        .ewg(soc_ewg),
+        .HEX0 (soc_HEX0)
+    );
  
   //ovde mozda nesto
 

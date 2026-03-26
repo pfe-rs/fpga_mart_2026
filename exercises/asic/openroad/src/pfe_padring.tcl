@@ -1,5 +1,7 @@
 # TODO: Potrebno nam je 10 pad-ova po stranici, ukoliko vam je potrebno manje ili vise, promenite ovaj broj
-set numPadsPerEdge 10
+#32
+set numPadsPerEdge 8
+#x*4
 
 # corner width is equal to padD, bondpad outside
 set cornerToPad [expr {$padBond + $padD}]
@@ -23,16 +25,15 @@ set westSpan  [expr {$chipH - 2*$cornerToPad - $padW}]
 set westPitch [expr {floor($westSpan / double($numPadsPerEdge - 1))}]
 set westStart [expr {$chipH - $cornerToPad - $padW}]
 
+#ovo se menja, ima ih koliko i br
 place_pad -row IO_WEST -location [expr {$westStart -  0*$westPitch}] "pad_vssio0"
 place_pad -row IO_WEST -location [expr {$westStart -  1*$westPitch}] "pad_vddio0"
-place_pad -row IO_WEST -location [expr {$westStart -  2*$westPitch}] "pad_in_data_0_i"
-place_pad -row IO_WEST -location [expr {$westStart -  3*$westPitch}] "pad_in_data_1_i"
-place_pad -row IO_WEST -location [expr {$westStart -  4*$westPitch}] "pad_in_data_2_i"
-place_pad -row IO_WEST -location [expr {$westStart -  5*$westPitch}] "pad_in_data_3_i"
-place_pad -row IO_WEST -location [expr {$westStart -  6*$westPitch}] "pad_in_data_4_i"
-place_pad -row IO_WEST -location [expr {$westStart -  7*$westPitch}] "pad_in_data_5_i"
-place_pad -row IO_WEST -location [expr {$westStart -  8*$westPitch}] "pad_vss0"
-place_pad -row IO_WEST -location [expr {$westStart -  9*$westPitch}] "pad_vdd0"
+place_pad -row IO_WEST -location [expr {$westStart -  2*$westPitch}] "pad_HEX0_0"
+place_pad -row IO_WEST -location [expr {$westStart -  3*$westPitch}] "pad_HEX0_1"
+place_pad -row IO_WEST -location [expr {$westStart -  4*$westPitch}] "pad_HEX0_2"
+place_pad -row IO_WEST -location [expr {$westStart -  5*$westPitch}] "pad_HEX0_3"
+place_pad -row IO_WEST -location [expr {$westStart -  6*$westPitch}] "pad_vss0"
+place_pad -row IO_WEST -location [expr {$westStart -  7*$westPitch}] "pad_vdd0"
 
 ##########################################################################
 # Edge: BOTTOM (left to right)                                           #
@@ -43,14 +44,12 @@ set southStart $cornerToPad
 
 place_pad -row IO_SOUTH -location [expr {$southStart +  0*$southPitch}] "pad_vssio1"
 place_pad -row IO_SOUTH -location [expr {$southStart +  1*$southPitch}] "pad_vddio1"
-place_pad -row IO_SOUTH -location [expr {$southStart +  2*$southPitch}] "pad_in_data_6_i"
-place_pad -row IO_SOUTH -location [expr {$southStart +  3*$southPitch}] "pad_in_data_7_i"
-place_pad -row IO_SOUTH -location [expr {$southStart +  4*$southPitch}] "pad_in_valid_i"
-place_pad -row IO_SOUTH -location [expr {$southStart +  5*$southPitch}] "pad_in_ready_o"
-place_pad -row IO_SOUTH -location [expr {$southStart +  6*$southPitch}] "pad_clk_i"
-place_pad -row IO_SOUTH -location [expr {$southStart +  7*$southPitch}] "pad_rst_ni"
-place_pad -row IO_SOUTH -location [expr {$southStart +  8*$southPitch}] "pad_vss1"
-place_pad -row IO_SOUTH -location [expr {$southStart +  9*$southPitch}] "pad_vdd1"
+place_pad -row IO_SOUTH -location [expr {$southStart +  2*$southPitch}] "pad_HEX0_4"
+place_pad -row IO_SOUTH -location [expr {$southStart +  3*$southPitch}] "pad_HEX0_5"
+place_pad -row IO_SOUTH -location [expr {$southStart +  4*$southPitch}] "pad_HEX0_6"
+place_pad -row IO_SOUTH -location [expr {$southStart +  5*$southPitch}] "pad_rst_ni"
+place_pad -row IO_SOUTH -location [expr {$southStart +  6*$southPitch}] "pad_vss1"
+place_pad -row IO_SOUTH -location [expr {$southStart +  7*$southPitch}] "pad_vdd1"
 
 ##########################################################################
 # Edge: RIGHT (bottom to top)                                            #
@@ -59,16 +58,15 @@ set eastSpan  [expr {$chipH - 2*$cornerToPad - $padW}]
 set eastPitch [expr {floor($eastSpan / double($numPadsPerEdge - 1))}]
 set eastStart $cornerToPad
 
+
 place_pad -row IO_EAST -location [expr {$eastStart +  0*$eastPitch}] "pad_vssio2"
 place_pad -row IO_EAST -location [expr {$eastStart +  1*$eastPitch}] "pad_vddio2"
-place_pad -row IO_EAST -location [expr {$eastStart +  2*$eastPitch}] "pad_out_data_0_o"
-place_pad -row IO_EAST -location [expr {$eastStart +  3*$eastPitch}] "pad_out_data_1_o"
-place_pad -row IO_EAST -location [expr {$eastStart +  4*$eastPitch}] "pad_out_data_2_o"
-place_pad -row IO_EAST -location [expr {$eastStart +  5*$eastPitch}] "pad_out_data_3_o"
-place_pad -row IO_EAST -location [expr {$eastStart +  6*$eastPitch}] "pad_out_data_4_o"
-place_pad -row IO_EAST -location [expr {$eastStart +  7*$eastPitch}] "pad_out_data_5_o"
-place_pad -row IO_EAST -location [expr {$eastStart +  8*$eastPitch}] "pad_vss2"
-place_pad -row IO_EAST -location [expr {$eastStart +  9*$eastPitch}] "pad_vdd2"
+place_pad -row IO_EAST -location [expr {$eastStart +  2*$eastPitch}] "pad_ar"
+place_pad -row IO_EAST -location [expr {$eastStart +  3*$eastPitch}] "pad_nsy"
+place_pad -row IO_EAST -location [expr {$eastStart +  4*$eastPitch}] "pad_nsg"
+place_pad -row IO_EAST -location [expr {$eastStart +  5*$eastPitch}] "pad_ewy"
+place_pad -row IO_EAST -location [expr {$eastStart +  6*$eastPitch}] "pad_vss2"
+place_pad -row IO_EAST -location [expr {$eastStart +  7*$eastPitch}] "pad_vdd2"
 
 ##########################################################################
 # Edge: TOP (right to left)                                              #
@@ -79,14 +77,12 @@ set northStart [expr {$chipW - $cornerToPad - $padW}]
 
 place_pad -row IO_NORTH -location [expr {$northStart -  0*$northPitch}] "pad_vssio3"
 place_pad -row IO_NORTH -location [expr {$northStart -  1*$northPitch}] "pad_vddio3"
-place_pad -row IO_NORTH -location [expr {$northStart -  2*$northPitch}] "pad_out_data_6_o"
-place_pad -row IO_NORTH -location [expr {$northStart -  3*$northPitch}] "pad_out_data_7_o"
-place_pad -row IO_NORTH -location [expr {$northStart -  4*$northPitch}] "pad_out_valid_o"
-place_pad -row IO_NORTH -location [expr {$northStart -  5*$northPitch}] "pad_out_ready_i"
-place_pad -row IO_NORTH -location [expr {$northStart -  6*$northPitch}] "pad_unused0_o"
-place_pad -row IO_NORTH -location [expr {$northStart -  7*$northPitch}] "pad_unused1_o"
-place_pad -row IO_NORTH -location [expr {$northStart -  8*$northPitch}] "pad_vss3"
-place_pad -row IO_NORTH -location [expr {$northStart -  9*$northPitch}] "pad_vdd3"
+place_pad -row IO_NORTH -location [expr {$northStart -  2*$northPitch}] "pad_ewg"
+place_pad -row IO_NORTH -location [expr {$northStart -  3*$northPitch}] "pad_pw"
+place_pad -row IO_NORTH -location [expr {$northStart -  4*$northPitch}] "pad_clk_i"
+place_pad -row IO_NORTH -location [expr {$northStart -  5*$northPitch}] "pad_unused0_o"
+place_pad -row IO_NORTH -location [expr {$northStart -  6*$northPitch}] "pad_vss3"
+place_pad -row IO_NORTH -location [expr {$northStart -  7*$northPitch}] "pad_vdd3"
 
 ###############################################################################
 # Kraj zadatka 6: Postavljanje I/O pinova
