@@ -1,6 +1,6 @@
 module pfe_soc #(
   parameter int unsigned DSIZE    = 16,
-  localparam int NUM_BYTES = 2
+  parameter int unsigned NUM_BYTES = 2
 ) (
   input  logic clk_i,
   input  logic rst_ni,

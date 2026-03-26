@@ -47,13 +47,13 @@ module pfe_chip (
 
     logic soc_status_o;
 
-    localparam int unsigned DataCount = 16;
+    localparam int unsigned DataCount = 8;
 
     logic                 soc_in_valid_i;
     logic                 soc_in_ready_o;
     logic [DataCount-1:0] soc_in_data_i; 
     logic                 soc_out_valid_o;
-    logic                 soc_out_ready_i;            
+    logic                 soc_out_ready_i;
     logic [DataCount-1:0] soc_out_data_o;
 
     sg13g2_IOPadIn        pad_clk_i        (.pad(clk_i),        .p2c(soc_clk_i));
@@ -108,7 +108,7 @@ module pfe_chip (
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio3();
 
   pfe_soc #(
-    .DSIZE    (   8 )
+    .DSIZE    (   16 )
   )
   i_fifo_soc (
     .clk_i          ( soc_clk_i       ),

@@ -7,7 +7,7 @@
 //
 // Interfaces:
 //   Input:  (NUM_BYTES*8)-bit valid/ready
-//   Output: 8-bit valid/ready (to JTAG UART TX or similar)
+//   Output: 8-bit valid/ready 
 //
 // Byte order: bits [7:0] sent first, then [15:8], etc.
 // When NUM_BYTES=1, acts as a simple valid/ready register stage.
@@ -31,81 +31,58 @@ module byte_serializer #(
 
     localparam int unsigned WIDTH = NUM_BYTES * 8;
 
-    logic [WIDTH-1:0] shift_reg;
-    assign out_data = shift_reg[7:0];
-
     generate
         if (NUM_BYTES == 1) begin : gen_single
-            assign in_ready = !out_valid || out_ready;
 
-            always_ff @(posedge clk or negedge rst_n) begin
-                if (!rst_n) begin
-                    shift_reg <= '0;
-                    out_valid <= 1'b0;
-                end else begin
-                    case ({in_valid && in_ready, out_valid && out_ready})
-                        2'b00: ;
-                        2'b01: out_valid <= 1'b0;
-                        2'b10: begin
-                            shift_reg <= in_data;
-                            out_valid <= 1'b1;
-                        end
-                        2'b11: begin
-                            shift_reg <= in_data;
-                            out_valid <= 1'b1;
-                        end
-                    endcase
-                end
-            end
+            assign in_ready = out_ready;
+            assign out_valid = in_valid;
+            assign out_data = in_data;
+
         end else begin : gen_multi
-            localparam int unsigned CNT_WIDTH = $clog2(NUM_BYTES);
+          localparam int unsigned CNT_WIDTH = $clog2(NUM_BYTES);
 
-            logic [CNT_WIDTH-1:0] byte_cnt;
-            logic                 busy;
-            logic                 last_byte;
-            logic                 in_fire;
-            logic                 out_fire;
+          logic [WIDTH-1:0]      shreg;
+          logic [CNT_WIDTH-1:0]  cnt;
+          logic                  active;  // currently serializing
 
-            assign last_byte = (byte_cnt == CNT_WIDTH'(NUM_BYTES - 1));
-            assign out_fire  = out_valid && out_ready;
-            assign in_ready  = !busy || (out_fire && last_byte);
-            assign in_fire   = in_valid && in_ready;
+          wire last_byte = active && (cnt == CNT_WIDTH'(NUM_BYTES - 1));
 
-            always_ff @(posedge clk or negedge rst_n) begin
-                if (!rst_n) begin
-                    shift_reg <= '0;
-                    byte_cnt  <= '0;
-                    busy      <= 1'b0;
-                    out_valid <= 1'b0;
-                end else begin
-                    if (!busy) begin
-                        if (in_fire) begin
-                            shift_reg <= in_data;
-                            byte_cnt  <= '0;
-                            busy      <= 1'b1;
-                            out_valid <= 1'b1;
-                        end
-                    end else begin
-                        if (out_fire) begin
-                            if (last_byte) begin
-                                if (in_valid) begin
-                                    shift_reg <= in_data;
-                                    byte_cnt  <= '0;
-                                    busy      <= 1'b1;
-                                    out_valid <= 1'b1;
-                                end else begin
-                                    busy      <= 1'b0;
-                                    out_valid <= 1'b0;
-                                end
-                            end else begin
-                                shift_reg <= {8'b0, shift_reg[WIDTH-1:8]};
-                                byte_cnt  <= byte_cnt + 1'b1;
-                            end
-                        end
-                    end
-                end
-            end
-        end
+          // Input accepted when idle or finishing last byte
+          assign in_ready  = !active || (last_byte && out_ready);
+          assign out_valid = active;
+          assign out_data  = shreg[7:0];
+
+          always_ff @(posedge clk or negedge rst_n) begin
+              if (!rst_n) begin
+                  active <= 1'b0;
+                  cnt    <= '0;
+                  shreg  <= '0;
+              end else begin
+                  if (!active) begin
+                      // Idle — latch new word
+                      if (in_valid) begin
+                          shreg  <= in_data;
+                          cnt    <= '0;
+                          active <= 1'b1;
+                      end
+                  end else if (out_ready) begin
+                      if (last_byte) begin
+                          // Last byte consumed — try back-to-back load
+                          if (in_valid) begin
+                              shreg  <= in_data;
+                              cnt    <= '0;
+                          end else begin
+                              active <= 1'b0;
+                          end
+                      end else begin
+                          // Shift right by one byte
+                          shreg <= {{8{1'b0}}, shreg[WIDTH-1:8]};
+                          cnt   <= cnt + 1'b1;
+                      end
+                  end
+              end
+          end
+      end
     endgenerate
 
 endmodule

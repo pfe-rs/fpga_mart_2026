@@ -53,39 +53,7 @@ set siteHeight [ord::dbu_to_microns [[dpl::get_row_site] getHeight]]
 ###############################################################################
 # Zadatak 7: Postavljanje SRAM makro celija
 ###############################################################################
-set bank0_sram0 i_fifo_soc/i_fifo_in.gen_sram.i_sram 
-set bank1_sram0 i_fifo_soc/i_fifo_out.gen_sram.i_sram
 
-set RamMaster256x8 [[ord::get_db] findMaster "RM_IHPSG13_2P_256x8_c2_bm_bist"]
-set RamSize256x8_W [ord::dbu_to_microns [$RamMaster256x8 getWidth]]
-set RamSize256x8_H [ord::dbu_to_microns [$RamMaster256x8 getHeight]]
-
-set coreArea      [ord::get_core_area]
-set core_leftX    [lindex $coreArea 0]
-set core_bottomY  [lindex $coreArea 1]
-set core_rightX   [lindex $coreArea 2]
-set core_topY     [lindex $coreArea 3]
-
-set floorPaddingX      10.0
-set floorPaddingY      10.0
-set floor_leftX       [expr $core_leftX + $floorPaddingX]
-set floor_bottomY     [expr $core_bottomY + $floorPaddingY]
-set floor_rightX      [expr $core_rightX - $floorPaddingX]
-set floor_topY        [expr $core_topY - $floorPaddingY]
-set floor_midpointX   [expr $floor_leftX + ($floor_rightX - $floor_leftX)/2]
-set floor_midpointY   [expr $floor_bottomY + ($floor_topY - $floor_bottomY)/2]
-
-set sram_gap_x 220
-
-set Y [expr {$floor_midpointY - $RamSize256x8_H/2}]
-
-set X0 [expr {$floor_midpointX - $sram_gap_x/2 - $RamSize256x8_W}]
-placeInstance $bank0_sram0 $X0 $Y R0
-
-set X1 [expr {$floor_midpointX + $sram_gap_x/2}]
-placeInstance $bank1_sram0 $X1 $Y R0
-
-cut_rows -halo_width_x 2 -halo_width_y 2
 ###############################################################################
 # Zadatak 8: Napajanje
 ###############################################################################

@@ -9,11 +9,9 @@ module pfe #(parameter int N=3, parameter int M=2, parameter int DSIZE=2*8)
     output  logic out_valid_o,
     input  logic out_ready_i
 );
-
-
     localparam int S_LOAD    = 0;
     localparam int S_COMPUTE = 1;
-    localparam int S_STORE   = 2;
+    localparam int S_STORE   = 2;  
     localparam int S_OUTPUT  = 3;
     int state;
 
@@ -21,11 +19,13 @@ module pfe #(parameter int N=3, parameter int M=2, parameter int DSIZE=2*8)
     logic [7:0] a [N][M];
     logic [7:0] b [M][N];
     logic [15:0] sabirak;
+
     int load_cnt;
     int a_row, a_col;
     int b_row, b_col;
 
     int c_row, c_col, k;
+
     logic [DSIZE-1:0] c_result;
     int               c_wr_row, c_wr_col;
     logic             last_element;

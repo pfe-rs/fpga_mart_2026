@@ -109,7 +109,7 @@ module jtag_uart_top (
 
     // PFE module
     pfe #(
-        .N (3),
+        .N (2),
         .M (2),
         .DSIZE (16)
     ) u_pfe (
