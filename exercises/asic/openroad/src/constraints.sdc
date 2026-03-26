@@ -1,7 +1,4 @@
-# FIFO chip backend constraints for Yosys/OpenROAD
-# Single-clock top with one external stream input and one external stream output
 
-source src/instances.tcl
 
 #############################
 ## Driving Cells and Loads ##
@@ -23,8 +20,8 @@ set_driving_cell -lib_cell sg13g2_IOPadOut16mA -pin pad [get_ports [list \
 ##################
 puts "Clocks..."
 
-# 100 MHz system clock
-set TCK_SYS 10.0
+# 50 MHz system clock
+set TCK_SYS 20.0
 create_clock -name clk_sys -period $TCK_SYS [get_ports clk_i]
 
 # Reasonable clock quality assumptions

@@ -36,25 +36,16 @@ module pfe_chip (
 ); 
     logic soc_clk_i;
     logic soc_rst_ni;
-    logic soc_ref_clk_i;
-    logic soc_testmode_i;
-
-    logic soc_jtag_tck_i;
-    logic soc_jtag_trst_ni;
-    logic soc_jtag_tms_i;
-    logic soc_jtag_tdi_i;
-    logic soc_jtag_tdo_o;
 
     logic soc_status_o;
 
-    localparam int unsigned DataCount = 16;
 
     logic                 soc_in_valid_i;
     logic                 soc_in_ready_o;
-    logic [DataCount-1:0] soc_in_data_i; 
+    logic [7:0] soc_in_data_i;
     logic                 soc_out_valid_o;
-    logic                 soc_out_ready_i;            
-    logic [DataCount-1:0] soc_out_data_o;
+    logic                 soc_out_ready_i;
+    logic [7:0] soc_out_data_o;
 
     sg13g2_IOPadIn        pad_clk_i        (.pad(clk_i),        .p2c(soc_clk_i));
     sg13g2_IOPadIn        pad_rst_ni       (.pad(rst_ni),       .p2c(soc_rst_ni));
@@ -107,22 +98,22 @@ module pfe_chip (
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio2();
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio3();
 
-  pfe_soc #(
-    .DSIZE    (   8 ),
-    .ASIZE    (   8 ),
-    .USE_SRAM ( 1'b1 )
-  )
-  i_fifo_soc (
-    .clk_i          ( soc_clk_i       ),
-    .rst_ni         ( soc_rst_ni      ),
-    .in_valid_i     ( soc_in_valid_i  ),
-    .in_ready_o     ( soc_in_ready_o  ),
-    .in_data_i      ( soc_in_data_i   ),
-    .out_valid_o    ( soc_out_valid_o ),
-    .out_ready_i    ( soc_out_ready_i ),
-    .out_data_o     ( soc_out_data_o  )
-  );
 
-  assign soc_status_o = 1'b1;
+
+
+    // PFE module
+    pfe #(
+        .DSIZE (8)
+    ) u_pfe (
+        .clk_i        (soc_clk_i),
+        .rst_ni       (soc_rst_ni),
+        .in_data_i    (soc_in_data_i),
+        .in_valid_i   (soc_in_valid_i),
+        .in_ready_o   (soc_in_ready_o),
+        .out_data_o   (soc_out_data_o),
+        .out_valid_o  (soc_out_valid_o),
+        .out_ready_i  (soc_out_ready_i)
+    );
+
 
 endmodule
