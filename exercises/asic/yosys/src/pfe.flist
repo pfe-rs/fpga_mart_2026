@@ -12,3 +12,8 @@
 ../rtl/pfe.sv
 ../rtl/pfe_soc.sv
 ../rtl/pfe_chip.sv
+../rtl/sevenseg.sv
+../rtl/byte_deserializer.sv
+../rtl/jtag_uart_controller.v
+../rtl/jtag_uart_sys.v
+../rtl/jtag_uart_top.v

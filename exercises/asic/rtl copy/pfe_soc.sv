@@ -6,33 +6,23 @@ module pfe_soc #(
   input  logic             clk_i,
   input  logic             rst_ni,
 
-  // Ulazni podaci (npr. sa JTAG-a)
   input  logic             in_valid_i,
   output logic             in_ready_o,
   input  logic [DSIZE-1:0] in_data_i,
 
-  // Handshake izlazi (ostavljeni radi kompatibilnosti sa top-levelom)
   output logic             out_valid_o,
   input  logic             out_ready_i,
-  output logic [DSIZE-1:0] out_data_o,
-
-  // NOVI PORTORI: Izlazi za sedmosegmentne displeje
-  output logic [6:0]       HEX0_N,
-  output logic [6:0]       HEX4_N
+  output logic [DSIZE-1:0] out_data_o
 );
 
-    // FIFO to PFE žice
+    // FIFO to PFE and back
     wire             fifo_pfe_valid_w;
     wire             fifo_pfe_ready_w;
     wire [DSIZE-1:0] fifo_pfe_data_w;
-
-    // Pošto tvoj 'pfe' više nema valid/ready izlaze, 
-    // ove žice ćemo privremeno vezati na nulu ili ih ignorisati
-    wire             pfe_fifo_valid_w = 1'b0; 
-    wire [DSIZE-1:0] pfe_fifo_data_w  = '0;
+    wire             pfe_fifo_valid_w;
     wire             pfe_fifo_ready_w;
+    wire [DSIZE-1:0] pfe_fifo_data_w;
 
-  // Ulazni FIFO - čuva podatke koji dolaze
   fifo #(
     .DSIZE       ( DSIZE ),
     .ASIZE       ( ASIZE ),
@@ -49,8 +39,7 @@ module pfe_soc #(
     .out_data_o  ( fifo_pfe_data_w  )
   );
 
-  // Processing module (PFE)
-  // IZMENJENO: Mapirani portovi za displeje, uklonjeni nepostojeći handshake portovi
+  // Processing module
   pfe #(
     .DSIZE       (DSIZE)
   ) u_pfe (
@@ -59,14 +48,11 @@ module pfe_soc #(
     .in_valid_i  (fifo_pfe_valid_w),
     .in_ready_o  (fifo_pfe_ready_w),
     .in_data_i   (fifo_pfe_data_w),
-    // Ovde dodajemo displeje koje Yosys nije video
-    .HEX0_N      (HEX0_N),
-    .HEX4_N      (HEX4_N)
+    .out_valid_o (pfe_fifo_valid_w),
+    .out_ready_i (pfe_fifo_ready_w),
+    .out_data_o  (pfe_fifo_data_w)
   );
 
-  // Izlazni FIFO
-  // Napomena: Ako pfe više ne obrađuje podatke za povratak, 
-  // ovaj FIFO će biti prazan, ali ostaje u kodu radi strukture.
   fifo #(
     .DSIZE       ( DSIZE ),
     .ASIZE       ( ASIZE ),
@@ -75,9 +61,9 @@ module pfe_soc #(
   i_fifo_out (
     .clk_i       ( clk_i            ),
     .rst_ni      ( rst_ni           ),
-    .in_valid_i  ( pfe_fifo_valid_w ), // Vezano na 0
-    .in_ready_o  ( pfe_fifo_ready_w ), 
-    .in_data_i   ( pfe_fifo_data_w  ), // Vezano na 0
+    .in_valid_i  ( pfe_fifo_valid_w ),
+    .in_ready_o  ( pfe_fifo_ready_w ),
+    .in_data_i   ( pfe_fifo_data_w  ),
     .out_valid_o ( out_valid_o      ),
     .out_ready_i ( out_ready_i      ),
     .out_data_o  ( out_data_o       )

@@ -107,7 +107,7 @@ module pfe_chip (
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio2();
     (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio3();
 
-  pfe #(
+  pfe_soc #(
     .DSIZE    (   8 ),
     .ASIZE    (   8 ),
     .USE_SRAM ( 1'b1 )
@@ -126,4 +126,3 @@ module pfe_chip (
   assign soc_status_o = 1'b1;
 
 endmodule
-exercises/asic/openroad/scripts copy/01_pfe_floorplan.tcl
