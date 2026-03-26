@@ -40,6 +40,7 @@ module pfe #(
       .WIDTH(WIDTH)
   ) u_cnt (
       .clk_i    (clk_i),
+      .rst_ni   (rst_ni), // DODATO: Neophodno za ASIC reset
       .period   (w_data), // w_data stavio bio Nikola
       .counter_o(w_count)
   );
@@ -50,6 +51,7 @@ module pfe #(
       .clk_i         (clk_i),
       .period        (w_data), // w_data stavio bio Nikola
         .duty_cycle    (duty_cycle),
+        .rst_ni         (rst_ni), // DODATO: Neophodno za ASIC reset
       .but1          (but1),
       .but2          (but2),
       .but3          (but3),
@@ -61,6 +63,7 @@ module pfe #(
       .WIDTH(WIDTH)
   ) u_pwm (
       .clk_i     (clk_i),
+      .rst_ni    (rst_ni), // DODATO: Neophodno za ASIC reset
       .counter_i (w_count),
       .duty_cycle(w_duty),
       .value     (pwm_out)
@@ -68,7 +71,7 @@ module pfe #(
 
 endmodule
 
-
+/*
 module counter #(
     parameter int WIDTH = 16
 ) (
@@ -82,9 +85,32 @@ module counter #(
 
     initial counter_o = 0;
   always_ff @(posedge clk_i) begin
+    if(!rst_ni) counter_o <= '0; ///////////////IZMENA: dodato resetovanje brojača IZBACI PO POTREBI
     if (counter_o >= period) counter_o <= 0;
     else counter_o <= counter_o + 1;
   end
+
+endmodule*/
+module counter #(
+    parameter int WIDTH = 16
+) (
+    input  logic             clk_i,
+    input  logic             rst_ni,
+    input  logic [WIDTH-1:0] period,
+    output logic [WIDTH-1:0] counter_o
+);
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            counter_o <= '0;            
+        end else begin
+            if (counter_o >= period) begin
+                counter_o <= '0;        
+            end else begin
+                counter_o <= counter_o + 1;
+            end
+        end
+    end
 
 endmodule
 
@@ -94,6 +120,7 @@ module buttons #(
     parameter DEBOUNCE_CNT_MAX = 20000  // Adjust as needed for debounce timing
 ) (
     input  logic             clk_i,
+    input  logic             rst_ni,    // DODATO: Neophodno za ASIC reset
     input  logic [WIDTH-1:0] period,
     input  logic [WIDTH-1:0] duty_cycle,
     input  logic             but1,
@@ -102,7 +129,7 @@ module buttons #(
     input  logic             but4,
     output logic [WIDTH-1:0] duty_cycle_out
 );
-
+/*
   logic b1_db, b2_db, b3_db, b4_db;
   logic [31:0] cnt1, cnt2, cnt3, cnt4;
 
@@ -174,10 +201,82 @@ module buttons #(
 
   end
 
-endmodule
+endmodule*/
+    logic b1_db, b2_db, b3_db, b4_db;
+    logic b1_r, b2_r, b3_r, b4_r;
+    logic [31:0] cnt1, cnt2, cnt3, cnt4;
 
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            // BUG 4 & 5: Reset svega
+            b1_db <= 0; b2_db <= 0; b3_db <= 0; b4_db <= 0;
+            b1_r  <= 0; b2_r  <= 0; b3_r  <= 0; b4_r  <= 0;
+            cnt1  <= 0; cnt2  <= 0; cnt3  <= 0; cnt4  <= 0;
+            duty_cycle_out <= duty_cycle; // BUG 6: Inicijalna vrednost sa ulaza
+        end else begin
+            // but1
+            if (but1 == b1_db) cnt1 <= 0;
+            else begin
+                cnt1 <= cnt1 + 1;
+                if (cnt1 >= DEBOUNCE_CNT_MAX) begin
+                    b1_db <= but1;
+                    cnt1 <= 0;
+                end
+            end
+            // but2
+            if (but2 == b2_db) cnt2 <= 0;
+            else begin
+                cnt2 <= cnt2 + 1;
+                if (cnt2 >= DEBOUNCE_CNT_MAX) begin
+                    b2_db <= but2;
+                    cnt2 <= 0;
+                end
+            end
+            // but3
+            if (but3 == b3_db) cnt3 <= 0;
+            else begin
+                cnt3 <= cnt3 + 1;
+                if (cnt3 >= DEBOUNCE_CNT_MAX) begin
+                    b3_db <= but3;
+                    cnt3 <= 0;
+                end
+            end
+            // but4
+            if (but4 == b4_db) cnt4 <= 0;
+            else begin
+                cnt4 <= cnt4 + 1;
+                if (cnt4 >= DEBOUNCE_CNT_MAX) begin
+                    b4_db <= but4;
+                    cnt4 <= 0;
+                end
+            end
+
+            // --- EDGE DETECT ---
+            b1_r <= b1_db;
+            b2_r <= b2_db;
+            b3_r <= b3_db;
+            b4_r <= b4_db;
+
+            // --- LOGIKA ZA DUTY CYCLE ---
+            if (b1_db && !b1_r)
+                duty_cycle_out <= 0;
+            else if (b2_db && !b2_r)
+                duty_cycle_out <= duty_cycle_out + 1;
+            else if (b3_db && !b3_r)
+                duty_cycle_out <= duty_cycle_out + (period / 16);
+            else if (b4_db && !b4_r)
+                duty_cycle_out <= duty_cycle_out + (period / 4);
+
+            // Granica (da ne ode preko perioda)
+            if (duty_cycle_out > period)
+                duty_cycle_out <= period;
+        end
+    end
+
+endmodule
+///dole je prethodni kod
 // pwm.sv (updated version)
-module pwm #(
+/*module pwm #(
     parameter WIDTH = 16
 ) (
     input logic clk_i,
@@ -198,6 +297,34 @@ module pwm #(
             value <= 1;
         else
             value <= 0;
+    end
+
+endmodule*/
+// pwm.sv (Finalna ASIC verzija)
+module pwm #(
+    parameter WIDTH = 16
+) (
+    input logic clk_i,
+    input logic rst_ni,                // Dodaj rst_ni i ovde radi konzistentnosti
+    input logic [WIDTH-1:0] counter_i,
+    input logic [WIDTH-1:0] duty_cycle,
+    output logic value
+);
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            value <= 0;
+        end else begin
+            // BUG 8 & 9: Bolja preciznost i parametrizacija
+            if (duty_cycle == 0)
+                value <= 0;
+            else if (duty_cycle == '1) // '1 automatski znači sve jedinice (npr. 16'hFFFF)
+                value <= 1;
+            else if (counter_i < duty_cycle) // Promenjeno iz <= u < za tacnu rezoluciju
+                value <= 1;
+            else
+                value <= 0;
+        end
     end
 
 endmodule

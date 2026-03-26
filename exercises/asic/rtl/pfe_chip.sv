@@ -68,10 +68,20 @@ module pfe_chip (
     (* dont_touch = "true" *) sg13g2_IOPadIOVss pad_vssio0();
 
     // --- Core Logic ---
-    pfe #(.WIDTH(16)) i_core (
-        .clk_i(soc_clk_i), .rst_ni(soc_rst_ni),
-        .in_valid_i(soc_in_valid), .in_ready_o(soc_in_ready), .in_data_i(soc_in_data),
-        .duty_cycle(16'd0), .but1(soc_btns[0]), .but2(soc_btns[1]), .but3(soc_btns[2]), .but4(soc_btns[3]),
-        .pwm_out(soc_pwm_out), .out_valid_o(soc_out_valid), .out_ready_i(soc_out_ready), .out_data_o(soc_out_data)
+    pfe #(.WIDTH(8)) i_core (
+        .clk_i(soc_clk_i), 
+        .rst_ni(soc_rst_ni),
+        .in_valid_i(soc_in_valid), 
+        .in_ready_o(soc_in_ready), 
+        .in_data_i(soc_in_data),   //WIDTH(8)
+        .duty_cycle(8'd0),         // Promenjeno na 8 bita
+        .but1(soc_btns[0]), 
+        .but2(soc_btns[1]), 
+        .but3(soc_btns[2]), 
+        .but4(soc_btns[3]),
+        .pwm_out(soc_pwm_out), 
+        .out_valid_o(soc_out_valid), 
+        .out_ready_i(soc_out_ready), 
+        .out_data_o(soc_out_data[7:0]) 
     );
-endmodule
+endmodule 
