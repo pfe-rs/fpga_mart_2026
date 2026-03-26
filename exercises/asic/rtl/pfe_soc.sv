@@ -10,83 +10,93 @@ module pfe_soc #(
     parameter bit_color = 8 //velicina boja
 )(
 
-    input logic              clk_i,
-    input  logic             rst_ni,
+    input logic                 clk_i,
+    input logic                 rst_ni,
     
-    output logic [Nb - 1 : 0] h_countb,
-    output logic [Nhs - 1 : 0] h_counts,
-    output logic [Nb - 1 : 0] v_countb,
-    output logic [Nvs - 1 : 0] v_counts,
-
-    output logic h_sync,
-    output logic v_sync,
-
-    output logic display_active,
-    output logic [Nb - 1 : 0] pixel_x,
-    output logic [Nb - 1 : 0] pixel_y,
-
+    output logic                h_sync,
+    output logic                v_sync,
+    
     output logic [bit_color - 1 : 0] R,
     output logic [bit_color - 1 : 0] G,
     output logic [bit_color - 1 : 0] B
 );
 
-initial h_sync = 1;
-initial v_sync = 1;
+logic [Nb  - 1 : 0]  h_countb;
+logic [Nhs - 1 : 0]  h_counts;
+logic [Nb  - 1 : 0]  v_countb;
+logic [Nvs - 1 : 0]  v_counts;
+logic [Nb - 1 : 0]   pixel_x;
+logic [Nb - 1 : 0]   pixel_y;
+logic                display_active;
 
 logic h_sync_prev;
 
 always_ff @(posedge clk_i) begin
-
-    h_sync_prev <= h_sync;
+    if(!rst_ni) begin
+        h_sync_prev <= 1'b1;
+    end
+    else begin
+        h_sync_prev <= h_sync;
+    end
 end
 
 always_ff @(posedge clk_i) begin //Namestanje H counterova i HSYNC
+    if (!rst_ni)begin
+        h_countb <= 10'b0;
+        h_counts <= 7'b0;
+        h_sync <= 1'b1;
+    end else begin
+        if (h_sync == 1) begin
+            if (h_countb < maxhb) begin
+                h_countb <= h_countb + 1;
+            end
+            else begin
+                h_countb <= 0;
+                h_sync <= 0;
+            end
+        end
 
-    if (h_sync == 1) begin
-        if (h_countb < maxhb) begin
-            h_countb <= h_countb + 1;
-        end
         else begin
-            h_countb <= 0;
-            h_sync <= 0;
-        end
-    end
-
-    else begin
-        if (h_counts < maxhs) begin
-            h_counts <= h_counts + 1;
-        end
-        else begin
-            h_counts <= 0;
-            h_sync <= 1;
+            if (h_counts < maxhs) begin
+                h_counts <= h_counts + 1;
+            end
+            else begin
+                h_counts <= 0;
+                h_sync <= 1;
+            end
         end
     end
 end
 
 always_ff @(posedge clk_i) begin //Namestanje V counterova i VSYNC
+    if(!rst_ni)begin
+        v_countb <= '0;
+        v_counts <= '0;
+        v_sync <= 1'b1;
+    end else begin
+        if (h_sync_prev == 1 && h_sync == 0) begin //Detekcija HSYNC fall
 
-    if (h_sync_prev == 1 && h_sync == 0) begin //Detekcija HSYNC fall
+            if (v_sync == 1) begin
 
-        if (v_sync == 1) begin
+                if (v_countb < maxvb) begin
+                    v_countb <= v_countb + 1;
+                end
 
-            if (v_countb < maxvb) begin
-                v_countb <= v_countb + 1;
+                else begin
+                    v_countb <= 0;
+                    v_sync <= 0;
+                end
             end
 
             else begin
-                v_countb <= 0;
-                v_sync <= 0;
-            end
-        end
+                if (v_counts < maxvs) begin
+                    v_counts <= v_counts + 1;
+                end
 
-        else begin
-            if (v_counts < maxvs) begin
-                v_counts <= v_counts + 1;
-            end
-
-            else begin
-                v_counts <= 0;
-                v_sync <= 1;
+                else begin
+                    v_counts <= 0;
+                    v_sync <= 1;
+                end
             end
         end
     end
