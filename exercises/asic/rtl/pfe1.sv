@@ -25,10 +25,6 @@ module pfe1 #(
     logic [$clog2(N)-1:0] bit_cnt;
     logic [N-1:0] data_reg;
 
-    assign out_data_o  = in_data_i;
-    assign out_valid_o = in_valid_i;
-    assign in_ready_o = (state == IDLE);
-
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
             state    <= IDLE;

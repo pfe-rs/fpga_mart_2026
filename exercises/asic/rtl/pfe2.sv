@@ -1,10 +1,10 @@
 module pfe2#(parameter N=8 ,parameter tpb=5208, parameter tpbs=13)(
     input clk_i,
+    input reset_ni,
     input out_ready_i,
     input rx,
     output [N-1:0] out_data_o,
-    output reg out_valid_o,
-    output reg busy
+    output reg out_valid_o
 );
 
 localparam ticks_to_bit = tpb - 1;
@@ -27,24 +27,15 @@ localparam data_state  = 3'b010;
 localparam stop_state  = 3'b011;
 localparam done_state  = 3'b100;
 
-initial begin
-    state = idle_state;
-    ticks_cnt = 0;
-    cnt = 0;
-    din = 1;
-    rxdata = 0;
-end
 
-always @(*) begin
+always_comb begin
     
     next_state = state;
     out_valid_o = 0;
-    busy = 1;
     comp = ticks_to_bit;
 
     case (state)
         idle_state: begin
-            busy = 0;
             comp = ticks_to_middle;
             if (out_ready_i && din_signal)
                 next_state = start_state;
@@ -80,10 +71,17 @@ always @(*) begin
     endcase
 end
 
-always @(posedge clk_i) begin
+always @(posedge clk_i or negedge reset_ni) begin
+    if(~reset_ni)begin
+        state <= idle_state;
+        ticks_cnt <= 0;
+        cnt <= 0;
+        din <= 1;
+        rxdata <= 0;
+    end
+    else begin
     state <= next_state;
     din <= rx; 
-
     if (state == idle_state) begin
         ticks_cnt <= 0;
         cnt <= 0;
@@ -91,12 +89,13 @@ always @(posedge clk_i) begin
         if (ticks_of_signal) begin
             ticks_cnt <= 0;
             if (state == data_state) begin
-                rxdata <= {din, rxdata[N-1:1]};
+                rxdata <= {rx, rxdata[N-1:1]};
                 cnt <= cnt + 1;
             end
         end else begin
             ticks_cnt <= ticks_cnt + 1;
         end
+    end
     end
 end
 

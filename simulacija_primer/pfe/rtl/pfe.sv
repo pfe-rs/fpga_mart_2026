@@ -10,11 +10,26 @@ module pfe #(
     // Output
     output logic [DSIZE-1:0] out_data_o,
     output logic             out_valid_o,
-    input  logic             out_ready_i
+    input  logic             out_ready_i,
+    input logic rx,
+    output logic tx
 );
 
-    assign in_ready_o = out_ready_i;
-    assign out_valid_o = in_valid_i;
-    assign out_data_o = in_data_i;
+    pfe1 #(8,50000000 ,9600) dut_tx (
+        .clk_i(clk_i), 
+        .rst_ni(rst_ni),
+        .in_data_i(in_data_i), 
+        .in_valid_i(in_valid_i), 
+        .in_ready_o(in_ready_o),
+        .tx(tx)
+    );
+    pfe2 #(8, 5208, 13) dut_rx (
+        .clk_i(clk_i), 
+        .out_ready_i(out_ready_i), 
+        .rx(rx),
+        .out_data_o(out_data_o), 
+        .out_valid_o(out_valid_o), 
+        .busy()
+    );
 
 endmodule
