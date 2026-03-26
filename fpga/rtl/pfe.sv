@@ -41,7 +41,7 @@ module pfe_top #(
 
     assign out_2 = acc;
 
-    assign out_3 = out_2[7:0];
+    assign out_3 = out_2[15:8];
 
     logic signed [7:0] rom [256];
     initial begin
@@ -148,7 +148,7 @@ module pfe #(parameter int DSIZE = 16
 
     typedef enum logic [2:0] {
         IDLE,
-        GENERATE
+        S_GENERATE
     } state_t;
 
     state_t state;
@@ -190,11 +190,11 @@ module pfe #(parameter int DSIZE = 16
                         phase_inc_reg[15:8] <= config_data[15:8];
                         phase_inc_reg[7:0] <= config_data[23:16];
                         sample_cnt <= 0;
-                        state <= GENERATE;
+                        state <= S_GENERATE;
                     end
                 end
 
-                GENERATE: begin
+                S_GENERATE: begin
                     if (data_ready) begin
                         sample_cnt <= sample_cnt + 1;
 
@@ -209,7 +209,7 @@ module pfe #(parameter int DSIZE = 16
 
     assign config_ready = (state == IDLE);
 
-    assign data_valid = (state == GENERATE);
+    assign data_valid = (state == S_GENERATE);
 
     assign data_out = out;
 

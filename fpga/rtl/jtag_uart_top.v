@@ -46,7 +46,7 @@ module jtag_uart_top (
     wire                   pfe_ser_valid;
     wire                   pfe_ser_ready;
 
-    Platform Designer system
+    // Platform Designer system
     jtag_uart_sys u_sys (
         .clk_clk                              (CLOCK_50),
         .reset_reset_n                        (rst_n),
