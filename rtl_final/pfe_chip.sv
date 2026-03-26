@@ -1,0 +1,121 @@
+
+//definisu se nasi signali 
+module pfe_chip (
+  input  wire clk_i,
+  input  wire rst_ni,
+
+  input wire  pw,
+
+  output wire   [6:0] HEX0,
+  output wire  ar,
+  output wire  nsy,
+  output wire  nsg,
+  output wire  ewy,
+  output wire ewg,
+
+  output wire unused0_o,
+
+  inout wire VDD,
+  inout wire VSS,
+  inout wire VDDIO,
+  inout wire VSSIO
+); 
+    logic soc_clk_i;
+    logic soc_rst_ni;
+    logic soc_ref_clk_i;
+    logic soc_testmode_i;
+
+    logic soc_jtag_tck_i;
+    logic soc_jtag_trst_ni;
+    logic soc_jtag_tms_i;
+    logic soc_jtag_tdi_i;
+    logic soc_jtag_tdo_o;
+
+    logic soc_status_o;
+ 
+    logic [6:0] soc_HEX0;
+    logic soc_ar;
+    logic soc_nsy;
+    logic  soc_nsg;
+    logic  soc_ewy;
+    logic soc_ewg;
+    logic soc_pw;
+    localparam int unsigned DataCount = 16;
+
+    logic                 soc_in_valid_i;
+    logic                 soc_in_ready_o;
+    logic [DataCount-1:0] soc_in_data_i; 
+    logic                 soc_out_valid_o;
+    logic                 soc_out_ready_i;            
+    logic [DataCount-1:0] soc_out_data_o;
+
+
+    
+
+    sg13g2_IOPadIn        pad_clk_i        (.pad(clk_i),        .p2c(soc_clk_i));
+    sg13g2_IOPadIn        pad_rst_ni       (.pad(rst_ni),       .p2c(soc_rst_ni));
+
+
+  
+    sg13g2_IOPadIn       pad_pw    (.pad(pw),    .p2c(soc_pw));
+  
+
+    sg13g2_IOPadOut16mA pad_HEX0_0 (.pad(HEX0[0]), .c2p(soc_HEX0[0]));
+    sg13g2_IOPadOut16mA pad_HEX0_1 (.pad(HEX0[1]), .c2p(soc_HEX0[1]));
+    sg13g2_IOPadOut16mA pad_HEX0_2 (.pad(HEX0[2]), .c2p(soc_HEX0[2]));
+    sg13g2_IOPadOut16mA pad_HEX0_3 (.pad(HEX0[3]), .c2p(soc_HEX0[3]));
+    sg13g2_IOPadOut16mA pad_HEX0_4 (.pad(HEX0[4]), .c2p(soc_HEX0[4]));
+    sg13g2_IOPadOut16mA pad_HEX0_5 (.pad(HEX0[5]), .c2p(soc_HEX0[5]));
+    sg13g2_IOPadOut16mA pad_HEX0_6 (.pad(HEX0[6]), .c2p(soc_HEX0[6]));
+
+    sg13g2_IOPadOut16mA pad_ar (.pad(ar), .c2p(soc_ar));
+    sg13g2_IOPadOut16mA pad_nsg (.pad(nsg), .c2p(soc_nsg));
+    sg13g2_IOPadOut16mA pad_nsy (.pad(nsy), .c2p(soc_nsy));
+    sg13g2_IOPadOut16mA pad_ewg (.pad(ewg), .c2p(soc_ewg));
+    sg13g2_IOPadOut16mA pad_ewy (.pad(ewy), .c2p(soc_ewy));
+
+
+    sg13g2_IOPadOut16mA pad_unused0_o      (.pad(unused0_o),    .c2p(soc_status_o));
+
+
+
+    (* dont_touch = "true" *)sg13g2_IOPadVdd pad_vdd0();
+    (* dont_touch = "true" *)sg13g2_IOPadVdd pad_vdd1();
+    (* dont_touch = "true" *)sg13g2_IOPadVdd pad_vdd2();
+    (* dont_touch = "true" *)sg13g2_IOPadVdd pad_vdd3();
+
+    (* dont_touch = "true" *)sg13g2_IOPadVss pad_vss0();
+    (* dont_touch = "true" *)sg13g2_IOPadVss pad_vss1();
+    (* dont_touch = "true" *)sg13g2_IOPadVss pad_vss2();
+    (* dont_touch = "true" *)sg13g2_IOPadVss pad_vss3();
+
+    (* dont_touch = "true" *)sg13g2_IOPadIOVdd pad_vddio0();
+    (* dont_touch = "true" *)sg13g2_IOPadIOVdd pad_vddio1();
+    (* dont_touch = "true" *)sg13g2_IOPadIOVdd pad_vddio2();
+    (* dont_touch = "true" *)sg13g2_IOPadIOVdd pad_vddio3();
+
+    (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio0();
+    (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio1();
+    (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio2();
+    (* dont_touch = "true" *)sg13g2_IOPadIOVss pad_vssio3();
+
+
+
+    // PFE module
+    pfe u_pfe (
+        .clk       (soc_clk_i),
+        .rst_n       (soc_rst_ni),
+        .pw(soc_pw),
+        .ar(soc_ar),
+        .nsy(soc_nsy),
+        .nsg(soc_nsg),
+        .ewy(soc_ewy),
+        .ewg(soc_ewg),
+        .HEX0 (soc_HEX0)
+    );
+ 
+  //ovde mozda nesto
+
+  assign soc_status_o = 1'b1;
+
+endmodule
