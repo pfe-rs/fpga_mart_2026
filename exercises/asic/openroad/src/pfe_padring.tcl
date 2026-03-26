@@ -1,5 +1,5 @@
-# TODO: Potrebno nam je 10 pad-ova po stranici, ukoliko vam je potrebno manje ili vise, promenite ovaj broj
-set numPadsPerEdge 10
+# TODO: 11 pads per side to fit all signals
+set numPadsPerEdge 11
 
 # corner width is equal to padD, bondpad outside
 set cornerToPad [expr {$padBond + $padD}]
@@ -31,8 +31,9 @@ place_pad -row IO_WEST -location [expr {$westStart -  4*$westPitch}] "pad_in_dat
 place_pad -row IO_WEST -location [expr {$westStart -  5*$westPitch}] "pad_in_data_3_i"
 place_pad -row IO_WEST -location [expr {$westStart -  6*$westPitch}] "pad_in_data_4_i"
 place_pad -row IO_WEST -location [expr {$westStart -  7*$westPitch}] "pad_in_data_5_i"
-place_pad -row IO_WEST -location [expr {$westStart -  8*$westPitch}] "pad_vss0"
-place_pad -row IO_WEST -location [expr {$westStart -  9*$westPitch}] "pad_vdd0"
+place_pad -row IO_WEST -location [expr {$westStart -  8*$westPitch}] "pad_btn"
+place_pad -row IO_WEST -location [expr {$westStart -  9*$westPitch}] "pad_vss0"
+place_pad -row IO_WEST -location [expr {$westStart - 10*$westPitch}] "pad_vdd0"
 
 ##########################################################################
 # Edge: BOTTOM (left to right)                                           #
@@ -49,8 +50,9 @@ place_pad -row IO_SOUTH -location [expr {$southStart +  4*$southPitch}] "pad_in_
 place_pad -row IO_SOUTH -location [expr {$southStart +  5*$southPitch}] "pad_in_ready_o"
 place_pad -row IO_SOUTH -location [expr {$southStart +  6*$southPitch}] "pad_clk_i"
 place_pad -row IO_SOUTH -location [expr {$southStart +  7*$southPitch}] "pad_rst_ni"
-place_pad -row IO_SOUTH -location [expr {$southStart +  8*$southPitch}] "pad_vss1"
-place_pad -row IO_SOUTH -location [expr {$southStart +  9*$southPitch}] "pad_vdd1"
+place_pad -row IO_SOUTH -location [expr {$southStart +  8*$southPitch}] "pad_out_ready_i"
+place_pad -row IO_SOUTH -location [expr {$southStart +  9*$southPitch}] "pad_vss1"
+place_pad -row IO_SOUTH -location [expr {$southStart + 10*$southPitch}] "pad_vdd1"
 
 ##########################################################################
 # Edge: RIGHT (bottom to top)                                            #
@@ -67,8 +69,9 @@ place_pad -row IO_EAST -location [expr {$eastStart +  4*$eastPitch}] "pad_out_da
 place_pad -row IO_EAST -location [expr {$eastStart +  5*$eastPitch}] "pad_out_data_3_o"
 place_pad -row IO_EAST -location [expr {$eastStart +  6*$eastPitch}] "pad_out_data_4_o"
 place_pad -row IO_EAST -location [expr {$eastStart +  7*$eastPitch}] "pad_out_data_5_o"
-place_pad -row IO_EAST -location [expr {$eastStart +  8*$eastPitch}] "pad_vss2"
-place_pad -row IO_EAST -location [expr {$eastStart +  9*$eastPitch}] "pad_vdd2"
+place_pad -row IO_EAST -location [expr {$eastStart +  8*$eastPitch}] "pad_out_data_8_o"
+place_pad -row IO_EAST -location [expr {$eastStart +  9*$eastPitch}] "pad_vss2"
+place_pad -row IO_EAST -location [expr {$eastStart + 10*$eastPitch}] "pad_vdd2"
 
 ##########################################################################
 # Edge: TOP (right to left)                                              #
@@ -81,12 +84,13 @@ place_pad -row IO_NORTH -location [expr {$northStart -  0*$northPitch}] "pad_vss
 place_pad -row IO_NORTH -location [expr {$northStart -  1*$northPitch}] "pad_vddio3"
 place_pad -row IO_NORTH -location [expr {$northStart -  2*$northPitch}] "pad_out_data_6_o"
 place_pad -row IO_NORTH -location [expr {$northStart -  3*$northPitch}] "pad_out_data_7_o"
-place_pad -row IO_NORTH -location [expr {$northStart -  4*$northPitch}] "pad_out_valid_o"
-place_pad -row IO_NORTH -location [expr {$northStart -  5*$northPitch}] "pad_out_ready_i"
+place_pad -row IO_NORTH -location [expr {$northStart -  4*$northPitch}] "pad_out_data_9_o"
+place_pad -row IO_NORTH -location [expr {$northStart -  5*$northPitch}] "pad_out_valid_o"
 place_pad -row IO_NORTH -location [expr {$northStart -  6*$northPitch}] "pad_unused0_o"
 place_pad -row IO_NORTH -location [expr {$northStart -  7*$northPitch}] "pad_unused1_o"
-place_pad -row IO_NORTH -location [expr {$northStart -  8*$northPitch}] "pad_vss3"
-place_pad -row IO_NORTH -location [expr {$northStart -  9*$northPitch}] "pad_vdd3"
+place_pad -row IO_NORTH -location [expr {$northStart -  8*$northPitch}] "pad_unused2_o"
+place_pad -row IO_NORTH -location [expr {$northStart -  9*$northPitch}] "pad_vss3"
+place_pad -row IO_NORTH -location [expr {$northStart - 10*$northPitch}] "pad_vdd3"
 
 ###############################################################################
 # Kraj zadatka 6: Postavljanje I/O pinova
@@ -103,8 +107,7 @@ place_io_fill -row IO_EAST  {*}$iofill
 connect_by_abutment
 
 # Bondpad as separate cell placed in OpenROAD:
-# place the bonding pad relative to the IO cell
 place_bondpad -bond $bondPadCell -offset {5.0 -70.0} pad_*
 
-# remove rows created by via make_io_sites as they are no longer needed
+# remove rows created by make_io_sites as they are no longer needed
 remove_io_rows

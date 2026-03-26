@@ -119,8 +119,7 @@ module pfe_chip (
 
   pfe_soc #(
     
-    .ASIZE    (   8 ),
-    .USE_SRAM ( 1'b0 )
+    
   
   )
     

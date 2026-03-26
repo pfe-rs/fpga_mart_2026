@@ -13,7 +13,7 @@
 // When NUM_BYTES=1, acts as a simple valid/ready register stage.
 
 module byte_serializer #(
-    parameter int unsigned NUM_BYTES = 4
+    parameter int unsigned NUM_BYTES = 3
 ) (
     input  logic                   clk,
     input  logic                   rst_n,

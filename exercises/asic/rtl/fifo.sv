@@ -12,7 +12,7 @@ module fifo #(
 
   output logic             out_valid_o,
   input  logic             out_ready_i,
-  output logic [10- 1:0] out_data_o
+  output logic [DSIZE- 1:0] out_data_o
 );
 
   localparam int unsigned Depth = (1 << ASIZE);

@@ -11,3 +11,5 @@
 ../rtl/pfe_soc_logic.sv
 ../rtl/pfe_soc.sv
 ../rtl/pfe_chip.sv
+../rtl/byte_serializer.sv
+../rtl/byte_deserializer.sv

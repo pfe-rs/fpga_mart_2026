@@ -42,62 +42,62 @@ module pfe #(
      a = (ans_) ? ans:in_data_i[15:8];
      b = in_data_i[7:0];
 
-    if(opcode == 4'd0)
+    if(opcode == 8'd0)
         begin
              rezultat = a + b;
              zero = rezultat == 0;
              overflow = (a[7] && b[7]);
         end
-    else if(opcode == 4'd1)
+    else if(opcode == 8'd1)
         begin
              rezultat = a - b;
              zero = (a == b);
              overflow = ((b - a) > 8'd127 || (b - a) < -8'sd127);
 
         end
-    else if(opcode == 4'd2)
+    else if(opcode == 8'd2)
         begin
              rezultat = (a > b)?a : b;
              zero = (rezultat == 0);
              overflow = 0;
         end
-    else if(opcode == 4'd3)
+    else if(opcode == 8'd3)
         begin
              rezultat = (a > b)?b : a;
              zero = (rezultat == 0);
              overflow = 0;
         end
-   else if(opcode == 4'd4)
+   else if(opcode == 8'd4)
    begin
      rezultat = (a == b);
      zero = rezultat == 0;
      overflow = 0;
    end
-    else if(opcode == 4'd5)
+    else if(opcode == 8'd5)
     begin
          rezultat = a << b;
          zero = rezultat == 0;
          overflow = (rezultat < 0);
     end
-    else if(opcode == 4'd6)
+    else if(opcode == 8'd6)
     begin
          rezultat = a >> b;
          zero = rezultat == 0;
          overflow = 0;
     end
-    else if(opcode == 4'd7)
+    else if(opcode == 8'd7)
     begin
          rezultat = (a & b);
          zero = rezultat == 0;
          overflow = 0;
     end
-    else if(opcode == 4'd8)
+    else if(opcode == 8'd8)
     begin
          rezultat = (a | b);
          zero = rezultat == 0;
          overflow = 0;
     end
-    else if(opcode == 4'd9)
+    else if(opcode == 8'd9)
     begin
          rezultat = (a ^ b);
          zero = rezultat == 0;

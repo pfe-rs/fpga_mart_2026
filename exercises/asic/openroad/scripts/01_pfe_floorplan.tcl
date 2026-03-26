@@ -23,8 +23,8 @@ source scripts/power_connect.tcl
 # Zadatak 3: Inicijalizacija floorplan-a
 ###############################################################################
 
-set chipH    1600; # OR die height (top to bottom)
-set chipW    1600; # OR die width (left to right)
+set chipH    1800; # OR die height (top to bottom)
+set chipW    1800; # OR die width (left to right)
 set padD      180; # pad depth (edge to core)
 set padW       80; # pad width (beachfront)
 set padBond    70; # bonding pad size

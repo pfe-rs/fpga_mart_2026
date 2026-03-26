@@ -7,7 +7,7 @@ module pfe #(
     input logic [DSIZE-1:0] in_data_i,
     input  logic in_valid_i,
     output logic in_ready_o,
-    output logic [DSIZE - 1:0] out_data_o,
+    output logic [10 - 1:0] out_data_o,
     output logic out_valid_o,
     input  logic out_ready_i
 );
@@ -46,7 +46,7 @@ module pfe #(
         begin
              rezultat = a + b;
              zero = rezultat == 0;
-             overflow = (a[7] && b[7]);
+             overflow = (a[7]==b[7]) && (rezultat[7]!=a[7]);
         end
     else if(opcode == 4'd1)
         begin
